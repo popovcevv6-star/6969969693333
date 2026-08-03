@@ -6,7 +6,7 @@ local LocalPlayer = Players.LocalPlayer
 
 if not LocalPlayer then return end
 
--- Очистка старого меню, если оно было
+//очистка старого менб 
 local existing = LocalPlayer:FindFirstChild("PlayerGui") and LocalPlayer.PlayerGui:FindFirstChild("NewCustomMenu")
 if existing then existing:Destroy() end
 
@@ -21,7 +21,7 @@ local function roundCorners(instance, radius)
 	corner.Parent = instance
 end
 
--- Кнопка для открытия/закрытия меню
+//кнопка менюшка открыть закрытб
 local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Parent = ScreenGui
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
@@ -33,12 +33,12 @@ ToggleBtn.TextSize = 14
 ToggleBtn.Font = Enum.Font.SourceSansBold
 roundCorners(ToggleBtn, 8)
 
--- Главный удлиненный серий квадрат (меню)
+//основа
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 MainFrame.Position = UDim2.new(0.05, 0, 0.12, 0)
-MainFrame.Size = UDim2.new(0, 200, 0, 320)
+MainFrame.Size = UDim2.new(0, 200, 0, 370) -- Немного увеличили высоту под новые функции
 MainFrame.Active = true
 MainFrame.Draggable = true
 roundCorners(MainFrame, 12)
@@ -47,12 +47,12 @@ ToggleBtn.MouseButton1Down:Connect(function()
 	MainFrame.Visible = not MainFrame.Visible
 end)
 
--- Заголовок меню
+//назва
 local Title = Instance.new("TextLabel")
 Title.Parent = MainFrame
 Title.BackgroundTransparency = 1
 Title.Size = UDim2.new(1, 0, 0, 40)
-Title.Text = "WERMAN P1"
+Title.Text = "CUSTOM MENU"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextSize = 16
 Title.Font = Enum.Font.SourceSansBold
@@ -62,7 +62,7 @@ Container.Parent = MainFrame
 Container.BackgroundTransparency = 1
 Container.Position = UDim2.new(0, 0, 0, 45)
 Container.Size = UDim2.new(1, 0, 1, -45)
-Container.CanvasSize = UDim2.new(0, 0, 0, 260)
+Container.CanvasSize = UDim2.new(0, 0, 0, 330)
 Container.ScrollBarThickness = 3
 
 local UIList = Instance.new("UIListLayout")
@@ -71,7 +71,7 @@ UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
 UIList.SortOrder = Enum.SortOrder.LayoutOrder
 UIList.Padding = UDim.new(0, 10)
 
--- Функция создания переключателей (кнопок функций)
+//рычаг тип
 local function createToggle(name, callback)
 	local btn = Instance.new("TextButton")
 	btn.Parent = Container
@@ -99,13 +99,15 @@ local function createToggle(name, callback)
 	end)
 end
 
--- Переменные состояний
+//перемен
 local aimEnabled = false
 local silentEnabled = false
 local espEnabled = false
 local invisEnabled = false
+local flingEnabled = false
+local bhopEnabled = false
 
--- 1. AIM (наводка на голову)
+-- аим
 createToggle("Aim", function(state)
 	aimEnabled = state
 end)
@@ -135,7 +137,7 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
--- 2. SILENT AIM (только голова)
+//сайлент
 createToggle("Silent Aim", function(state)
 	silentEnabled = state
 end)
@@ -150,7 +152,6 @@ mt.__namecall = newcclosure(function(self, ...)
 	if silentEnabled and (method == "FireServer" or method == "InvokeServer") then
 		for _, v in ipairs(args) do
 			if typeof(v) == "Vector3" then
-				-- Ищем ближайшую голову для перенаправления луча/вектора выстрела
 				local closestHead = nil
 				local shortestDist = math.huge
 				for _, p in ipairs(Players:GetPlayers()) do
@@ -179,7 +180,7 @@ mt.__namecall = newcclosure(function(self, ...)
 end)
 setreadonly(mt, true)
 
--- 3. ESP (простой белый квадрат вокруг игрока через Drawing API)
+//еспы
 local espBoxes = {}
 
 local function removeEsp(player)
@@ -219,8 +220,9 @@ RunService.RenderStepped:Connect(function()
 						local hrp = p.Character.HumanoidRootPart
 						local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
 						if onScreen then
-							local sizeX = 2500 / pos.Z
-							local sizeY = 4000 / pos.Z
+							-- Уменьшены коэффициенты деления ровно в 2 раза для идеального размера под игрока
+							local sizeX = 1250 / pos.Z
+							local sizeY = 2000 / pos.Z
 							local box = espBoxes[p].box
 							box.Size = Vector2.new(sizeX, sizeY)
 							box.Position = Vector2.new(pos.X - sizeX / 2, pos.Y - sizeY / 2)
@@ -243,7 +245,7 @@ Players.PlayerRemoving:Connect(function(p)
 	removeEsp(p)
 end)
 
--- 4. INVISIBLE (полная невидимость для всех и себя)
+//невидимика
 createToggle("Invisible", function(state)
 	invisEnabled = state
 	local char = LocalPlayer.Character
@@ -259,6 +261,51 @@ createToggle("Invisible", function(state)
 						part.Transparency = 0
 					end
 				end
+			end
+		end
+	end
+end)
+
+//флинг
+createToggle("Fling", function(state)
+	flingEnabled = state
+end)
+
+RunService.Heartbeat:Connect(function()
+	if flingEnabled then
+		local char = LocalPlayer.Character
+		local hrp = char and char:FindFirstChild("HumanoidRootPart")
+		if hrp then
+			for _, p in ipairs(Players:GetPlayers()) do
+				if p ~= LocalPlayer and p.Character then
+					local otherHrp = p.Character:FindFirstChild("HumanoidRootPart")
+					if otherHrp then
+						local dist = (hrp.Position - otherHrp.Position).Magnitude
+						if dist < 6 then -- Радиус срабатывания
+							pcall(function()
+								-- Колоссальный импульс, пробивающий стены и отправляющий в космос
+								otherHrp.Velocity = Vector3.new(math.random(-50000, 50000), 80000, math.random(-50000, 50000))
+							end)
+						end
+					end
+				end
+			end
+		end
+	end
+end)
+
+//бани
+createToggle("Bunnyhop", function(state)
+	bhopEnabled = state
+end)
+
+RunService.Heartbeat:Connect(function()
+	if bhopEnabled then
+		local char = LocalPlayer.Character
+		local hum = char and char:FindFirstChildOfClass("Humanoid")
+		if hum then
+			if hum.FloorMaterial ~= Enum.Material.Air then
+				hum:ChangeState(Enum.HumanoidStateType.Jumping)
 			end
 		end
 	end
