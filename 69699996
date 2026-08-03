@@ -329,18 +329,19 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
--- 6. FLING (Интегрированная рабочая логика из скриншота)
+-- 6. FLING (Мощность увеличена ровно в 80 раз)
 local flingBtn = createFunction("Fling")
 
 local function flingLogic()
-	local c, hrp, vel, movel = nil, nil, nil, 0.1
+	local c, hrp, vel, movel = nil, nil, nil, 8.0 -- Смещение увеличено в 80 раз (0.1 * 80)
 	while hiddenfling do
 		RunService.Heartbeat:Wait()
 		c = player.Character
 		hrp = c and c:FindFirstChild("HumanoidRootPart")
 		if hrp then
 			vel = hrp.Velocity
-			hrp.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
+			-- Множители скорости и высоты увеличены ровно в 80 раз по сравнению со стандартным флингом
+			hrp.Velocity = vel * 800000 + Vector3.new(0, 800000, 0)
 			RunService.RenderStepped:Wait()
 			hrp.Velocity = vel
 			RunService.Stepped:Wait()
@@ -363,7 +364,7 @@ flingBtn.MouseButton1Down:Connect(function()
 	end
 end)
 
--- 7. REFLASH (Перемотка назад на 2 секунды)
+-- 7. REFLASH
 local reflashBtn, reflashItem = createActionFunction("Reflash")
 local positionHistory = {}
 
