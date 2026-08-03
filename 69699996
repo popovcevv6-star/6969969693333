@@ -56,7 +56,6 @@ Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextSize = 16
 Title.Font = Enum.Font.SourceSansBold
 
--- Система вкладок (Tabs)
 local TabsContainer = Instance.new("Frame")
 TabsContainer.Parent = MainFrame
 TabsContainer.BackgroundTransparency = 1
@@ -126,7 +125,6 @@ local VisualsTab = createTab("Visuals")
 local TrollTab = createTab("Troll")
 local MM2Tab = createTab("MM2")
 
--- Включение первой вкладки по умолчанию
 containers["Main"].Visible = true
 tabButtons["Main"].BackgroundColor3 = Color3.fromRGB(80, 80, 80)
 tabButtons["Main"].TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -158,7 +156,6 @@ local function createToggle(tab, name, callback)
 	end)
 end
 
--- Переменные функций
 local aimEnabled, silentEnabled, hitboxesEnabled, flyEnabled, bhopEnabled, clickTpEnabled = false, false, false, false, false, false
 local espEnabled, chamsEnabled, nametagsEnabled, fullbrightEnabled, fovEnabled, freecamEnabled, xrayEnabled = false, false, false, false, false, false, false
 local invisEnabled, hiddenfling, spinbotEnabled, antiflingEnabled, sitanywhereEnabled, followplayerEnabled, attachtotargetEnabled = false, false, false, false, false, false, false
@@ -167,7 +164,6 @@ local tpwalking = false
 local flingThread = nil
 local currentBhopSpeed = 16
 
--- === MAIN TAB ===
 createToggle(MainTab, "Aim", function(s) aimEnabled = s end)
 createToggle(MainTab, "Silent Aim", function(s) silentEnabled = s end)
 createToggle(MainTab, "Hitboxes", function(s) hitboxesEnabled = s end)
@@ -191,7 +187,6 @@ createToggle(MainTab, "Click TP Tool", function(s)
 	end
 end)
 
--- === VISUALS TAB ===
 createToggle(VisualsTab, "ESP", function(s) espEnabled = s end)
 createToggle(VisualsTab, "Chams", function(s) chamsEnabled = s end)
 createToggle(VisualsTab, "NameTags", function(s) nametagsEnabled = s end)
@@ -207,7 +202,6 @@ createToggle(VisualsTab, "X-Ray", function(s)
 	end
 end)
 
--- === TROLL TAB ===
 createToggle(TrollTab, "Invisible", function(s)
 	invisEnabled = s
 	pcall(function()
@@ -255,12 +249,8 @@ end)
 createToggle(TrollTab, "Follow Player", function(s) followplayerEnabled = s end)
 createToggle(TrollTab, "Attach to Player", function(s) attachtotargetEnabled = s end)
 
--- === MM2 TAB ===
 createToggle(MM2Tab, "MM2 Role ESP", function(s) mm2espEnabled = s end)
 
--- ЛОГИКА РАБОТЫ ФУНКЦИЙ --
-
--- Aim & Silent Aim & Hitboxes
 RunService.RenderStepped:Connect(function()
 	if aimEnabled then
 		pcall(function()
@@ -291,29 +281,6 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
--- Silent Aim Hook
-pcall(function()
-	local mouse = LocalPlayer:GetMouse()
-	local mt = getrawmetatable(mouse)
-	if mt then
-		setreadonly(mt, false)
-		local oldIndex = mt.__index
-		mt.__index = newcclosure(function(self, idx)
-			if silentEnabled and idx == "Hit" then
-				for _, p in ipairs(Players:GetPlayers()) do
-					if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
-						local hum = p.Character:FindFirstChildOfClass("Humanoid")
-						if hum and hum.Health > 0 then return CFrame.new(p.Character.Head.Position) end
-					end
-				end
-			end
-			return oldIndex(self, idx)
-		end)
-		setreadonly(mt, true)
-	end
-end)
-
--- Hitboxes & Bhop & Follow/Attach
 RunService.Heartbeat:Connect(function()
 	if hitboxesEnabled then
 		pcall(function()
@@ -361,7 +328,111 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
--- Freecam Logic
+RunService.RenderStepped:Connect(function()
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= LocalPlayer and p.Character then
+			local char = p.Character
+			local hl = char:FindFirstChild("CustomChamsHL")
+			if chamsEnabled then
+				if not hl then
+					hl = Instance.new("Highlight")
+					hl.Name = "CustomChamsHL"
+					hl.Adornee = char
+					hl.FillColor = Color3.fromRGB(0, 255, 255)
+					hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+					hl.Parent = char
+				end
+			else
+				if hl then hl:Destroy() end
+			end
+		end
+	end
+end)
+
+RunService.RenderStepped:Connect(function()
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= LocalPlayer and p.Character then
+			local char = p.Character
+			local hl = char:FindFirstChild("MM2EspHL")
+			if mm2espEnabled then
+				local role = "Innocent"
+				local function check(itemContainer)
+					if not itemContainer then return end
+					for _, item in ipairs(itemContainer:GetChildren()) do
+						if item:IsA("Tool") then
+							local n = item.Name:lower()
+							if n:find("knife") or n:find("blade") or n:find("dagger") then
+								role = "Murderer"
+							elseif n:find("gun") or n:find("revolver") or n:find("sheriff") then
+								role = "Sheriff"
+							end
+						end
+					end
+				end
+				check(char)
+				if p:FindFirstChild("Backpack") then check(p.Backpack) end
+
+				local col = Color3.fromRGB(0, 255, 0)
+				if role == "Murderer" then col = Color3.fromRGB(255, 0, 0)
+				elseif role == "Sheriff" then col = Color3.fromRGB(0, 100, 255) end
+
+				if not hl then
+					hl = Instance.new("Highlight")
+					hl.Name = "MM2EspHL"
+					hl.Adornee = char
+					hl.Parent = char
+				end
+				hl.FillColor = col
+				hl.OutlineColor = col
+			else
+				if hl then hl:Destroy() end
+			end
+		end
+	end
+end)
+
+RunService.RenderStepped:Connect(function()
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+			local head = p.Character.Head
+			local tag = head:FindFirstChild("CustomNameTagGui")
+			if nametagsEnabled then
+				if not tag then
+					local bg = Instance.new("BillboardGui")
+					bg.Name = "CustomNameTagGui"
+					bg.Size = UDim2.new(0, 100, 0, 40)
+					bg.StudsOffset = Vector3.new(0, 2.5, 0)
+					bg.AlwaysOnTop = true
+					bg.Parent = head
+					
+					local txt = Instance.new("TextLabel")
+					txt.Size = UDim2.new(1, 0, 1, 0)
+					txt.BackgroundTransparency = 1
+					txt.Text = p.Name
+					txt.TextColor3 = Color3.fromRGB(255, 255, 255)
+					txt.TextStrokeTransparency = 0
+					txt.TextSize = 14
+					txt.Font = Enum.Font.SourceSansBold
+					txt.Parent = bg
+				end
+			else
+				if tag then tag:Destroy() end
+			end
+		end
+	end
+end)
+
+RunService.RenderStepped:Connect(function()
+	if fullbrightEnabled then
+		Lighting.Brightness = 2
+		Lighting.ClockTime = 14
+		Lighting.GlobalShadows = false
+	else
+		Lighting.Brightness = 1
+		Lighting.GlobalShadows = true
+	end
+end)
+
 RunService.RenderStepped:Connect(function()
 	if freecamEnabled then
 		pcall(function()
@@ -378,70 +449,6 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
--- MM2 Role ESP Logic (Убийца - Красный, Шериф - Синий, Невинные - Зеленый)
-RunService.RenderStepped:Connect(function()
-	if mm2espEnabled then
-		pcall(function()
-			for _, p in ipairs(Players:GetPlayers()) do
-				if p ~= LocalPlayer and p.Character then
-					local role = "Innocent"
-					-- Проверяем инвентарь и руки на наличие ножа (Murderer) или пистолета (Sheriff)
-					local function checkItems(container)
-						if not container then return end
-						for _, item in ipairs(container:GetChildren()) do
-							if item:IsA("Tool") then
-								local name = item.Name:lower()
-								if name:find("knife") or name:find("blade") or name:find("dagger") then
-									role = "Murderer"
-								elseif name:find("gun") or name:find("revolver") or name:find("sheriff") then
-									role = "Sheriff"
-								end
-							end
-						end
-					end
-					checkItems(p.Character)
-					if p:FindFirstChild("Backpack") then checkItems(p.Backpack) end
-
-					local color = Color3.fromRGB(0, 255, 0) -- Зеленый (Innocent)
-					if role == "Murderer" then
-						color = Color3.fromRGB(255, 0, 0) -- Красный (Мардер)
-					elseif role == "Sheriff" then
-						color = Color3.fromRGB(0, 100, 255) -- Синий (Шериф)
-					end
-
-					for _, part in ipairs(p.Character:GetDescendants()) do
-						if part:IsA("BasePart") then
-							local hl = part:FindFirstChild("MM2EspHighlight")
-							if not hl then
-								hl = Instance.new("Highlight")
-								hl.Name = "MM2EspHighlight"
-								hl.Adornee = p.Character
-								hl.Parent = part
-							end
-							hl.FillColor = color
-							hl.OutlineColor = color
-						end
-					end
-				end
-			end
-		end)
-	else
-		pcall(function()
-			for _, p in ipairs(Players:GetPlayers()) do
-				if p.Character then
-					for _, part in ipairs(p.Character:GetDescendants()) do
-						local hl = part:FindFirstChild("MM2EspHighlight")
-						if hl then hl:Destroy() end
-					end
-				end
-			end
-		end)
-	end
-end)
-
--- Fly (1.5 speed)
-createToggle(MainTab, "Fly Control", function() end) -- (Fly завязан на отдельный тумблер выше)
--- Логика самого полета со скоростью 1.5
 RunService.Heartbeat:Connect(function()
 	if flyEnabled then
 		pcall(function()
