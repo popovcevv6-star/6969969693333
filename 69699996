@@ -1,413 +1,265 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
 
-local player = Players.LocalPlayer
-if not player then return end
+if not LocalPlayer then return end
 
--- Очистка старых меню
-local existing = player:FindFirstChild("PlayerGui") and player.PlayerGui:FindFirstChild("ModMenuGui")
+-- Очистка старого меню, если оно было
+local existing = LocalPlayer:FindFirstChild("PlayerGui") and LocalPlayer.PlayerGui:FindFirstChild("NewCustomMenu")
 if existing then existing:Destroy() end
 
-local main = Instance.new("ScreenGui")
-main.Name = "ModMenuGui"
-main.Parent = player:WaitForChild("PlayerGui")
-main.ResetOnSpawn = false
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "NewCustomMenu"
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
 
--- Вспомогательная функция для закругления углов
 local function roundCorners(instance, radius)
 	local corner = Instance.new("UICorner")
 	corner.CornerRadius = UDim.new(0, radius)
 	corner.Parent = instance
 end
 
--- КНОПКА ОТКРЫТИЯ/ЗАКРЫТИЯ
-local ToggleMenuBtn = Instance.new("TextButton")
-ToggleMenuBtn.Parent = main
-ToggleMenuBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-ToggleMenuBtn.BorderSizePixel = 0
-ToggleMenuBtn.Position = UDim2.new(0.4, 0, 0.02, 0)
-ToggleMenuBtn.Size = UDim2.new(0, 100, 0, 25)
-ToggleMenuBtn.Text = "Open/Close"
-ToggleMenuBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleMenuBtn.TextSize = 12
-ToggleMenuBtn.Font = Enum.Font.SourceSansBold
-roundCorners(ToggleMenuBtn, 6)
+-- Кнопка для открытия/закрытия меню
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Parent = ScreenGui
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ToggleBtn.Position = UDim2.new(0.05, 0, 0.05, 0)
+ToggleBtn.Size = UDim2.new(0, 110, 0, 30)
+ToggleBtn.Text = "Menu"
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleBtn.TextSize = 14
+ToggleBtn.Font = Enum.Font.SourceSansBold
+roundCorners(ToggleBtn, 8)
 
--- Главный Фрейм меню
-local Frame = Instance.new("Frame")
-Frame.Parent = main
-Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-Frame.Position = UDim2.new(0.1, 0, 0.4, 0)
-Frame.Size = UDim2.new(0, 180, 0, 300)
-Frame.Active = true
-Frame.Draggable = true
-roundCorners(Frame, 12)
+-- Главный удлиненный серий квадрат (меню)
+local MainFrame = Instance.new("Frame")
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+MainFrame.Position = UDim2.new(0.05, 0, 0.12, 0)
+MainFrame.Size = UDim2.new(0, 200, 0, 320)
+MainFrame.Active = true
+MainFrame.Draggable = true
+roundCorners(MainFrame, 12)
 
--- Логика переключения видимости
-ToggleMenuBtn.MouseButton1Down:Connect(function()
-	Frame.Visible = not Frame.Visible
+ToggleBtn.MouseButton1Down:Connect(function()
+	MainFrame.Visible = not MainFrame.Visible
 end)
 
 -- Заголовок меню
 local Title = Instance.new("TextLabel")
-Title.Parent = Frame
-Title.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-Title.Size = UDim2.new(1, 0, 0, 30)
-Title.Text = "werman.delta"
+Title.Parent = MainFrame
+Title.BackgroundTransparency = 1
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Text = "CUSTOM MENU"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 14
+Title.TextSize = 16
 Title.Font = Enum.Font.SourceSansBold
-roundCorners(Title, 12)
 
--- Дополнительный фрейм-заглушка снизу заголовка
-local TitleFix = Instance.new("Frame")
-TitleFix.Parent = Title
-TitleFix.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-TitleFix.BorderSizePixel = 0
-TitleFix.Position = UDim2.new(0, 0, 0.5, 0)
-TitleFix.Size = UDim2.new(1, 0, 0.5, 0)
-TitleFix.ZIndex = 0
-
--- Контейнер функций с прокруткой
 local Container = Instance.new("ScrollingFrame")
-Container.Parent = Frame
+Container.Parent = MainFrame
 Container.BackgroundTransparency = 1
-Container.Position = UDim2.new(0, 0, 0, 35)
-Container.Size = UDim2.new(1, 0, 1, -35)
-Container.CanvasSize = UDim2.new(0, 0, 0, 400)
-Container.ScrollBarThickness = 4
+Container.Position = UDim2.new(0, 0, 0, 45)
+Container.Size = UDim2.new(1, 0, 1, -45)
+Container.CanvasSize = UDim2.new(0, 0, 0, 260)
+Container.ScrollBarThickness = 3
 
-local Layout = Instance.new("UIListLayout")
-Layout.Parent = Container
-Layout.SortOrder = Enum.SortOrder.LayoutOrder
-Layout.Padding = UDim.new(0, 5)
+local UIList = Instance.new("UIListLayout")
+UIList.Parent = Container
+UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIList.SortOrder = Enum.SortOrder.LayoutOrder
+UIList.Padding = UDim.new(0, 10)
+
+-- Функция создания переключателей (кнопок функций)
+local function createToggle(name, callback)
+	local btn = Instance.new("TextButton")
+	btn.Parent = Container
+	btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+	btn.Size = UDim2.new(0, 180, 0, 45)
+	btn.Text = name .. ": OFF"
+	btn.TextColor3 = Color3.fromRGB(255, 100, 100)
+	btn.TextSize = 13
+	btn.Font = Enum.Font.SourceSansBold
+	roundCorners(btn, 8)
+	
+	local state = false
+	btn.MouseButton1Down:Connect(function()
+		state = not state
+		if state then
+			btn.Text = name .. ": ON"
+			btn.TextColor3 = Color3.fromRGB(100, 255, 100)
+			btn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+		else
+			btn.Text = name .. ": OFF"
+			btn.TextColor3 = Color3.fromRGB(255, 100, 100)
+			btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+		end
+		callback(state)
+	end)
+end
 
 -- Переменные состояний
-local speeds = 1
-local speedOn = false
-local jumpOn = false
-local noclipOn = false
-local hops = 50
-local hopOn = false
-local noAnimOn = false
-local hiddenfling = false
-local flingThread = nil
+local aimEnabled = false
+local silentEnabled = false
+local espEnabled = false
+local invisEnabled = false
 
--- Вспомогательная функция создания секций с закруглением (для ON/OFF)
-local function createFunction(name)
-	local item = Instance.new("Frame")
-	item.Size = UDim2.new(1, -6, 0, 50)
-	item.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-	item.Parent = Container
-	roundCorners(item, 8)
-
-	local label = Instance.new("TextLabel")
-	label.Parent = item
-	label.BackgroundTransparency = 1
-	label.Position = UDim2.new(0, 5, 0, 0)
-	label.Size = UDim2.new(0.5, 0, 1, 0)
-	label.Text = name
-	label.TextColor3 = Color3.fromRGB(255, 255, 255)
-	label.TextSize = 14
-	label.TextXAlignment = Enum.TextXAlignment.Left
-
-	local btn = Instance.new("TextButton")
-	btn.Parent = item
-	btn.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
-	btn.Position = UDim2.new(0.65, 0, 0.2, 0)
-	btn.Size = UDim2.new(0, 50, 0, 30)
-	btn.Text = "OFF"
-	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-	btn.TextSize = 12
-	roundCorners(btn, 6)
-
-	return btn, item
-end
-
--- Вспомогательная функция для кнопок без ON/OFF (просто нажатие)
-local function createActionFunction(name)
-	local item = Instance.new("Frame")
-	item.Size = UDim2.new(1, -6, 0, 50)
-	item.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-	item.Parent = Container
-	roundCorners(item, 8)
-
-	local label = Instance.new("TextLabel")
-	label.Parent = item
-	label.BackgroundTransparency = 1
-	label.Position = UDim2.new(0, 5, 0, 0)
-	label.Size = UDim2.new(0.5, 0, 1, 0)
-	label.Text = name
-	label.TextColor3 = Color3.fromRGB(255, 255, 255)
-	label.TextSize = 14
-	label.TextXAlignment = Enum.TextXAlignment.Left
-
-	local btn = Instance.new("TextButton")
-	btn.Parent = item
-	btn.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
-	btn.Position = UDim2.new(0.55, 0, 0.2, 0)
-	btn.Size = UDim2.new(0, 70, 0, 30)
-	btn.Text = "USE"
-	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-	btn.TextSize = 12
-	roundCorners(btn, 6)
-
-	return btn, item
-end
-
--- 1. СЕТАП СКОРОСТИ
-local speedBtn, speedItem = createFunction("Speedhack")
-local mine = Instance.new("TextButton")
-local plus = Instance.new("TextButton")
-
-mine.Parent = speedItem
-mine.Size = UDim2.new(0, 20, 0, 20)
-mine.Position = UDim2.new(0.45, 0, 0.1, 0)
-mine.Text = "-"
-mine.BackgroundColor3 = Color3.fromRGB(60,60,60)
-mine.TextColor3 = Color3.fromRGB(255,255,255)
-roundCorners(mine, 4)
-
-plus.Parent = speedItem
-plus.Size = UDim2.new(0, 20, 0, 20)
-plus.Position = UDim2.new(0.45, 0, 0.55, 0)
-plus.Text = "+"
-plus.BackgroundColor3 = Color3.fromRGB(60,60,60)
-plus.TextColor3 = Color3.fromRGB(255,255,255)
-roundCorners(plus, 4)
-
-local function updateSpeedText()
-	speedItem.TextLabel.Text = "Speed: " .. speeds
-end
-
-plus.MouseButton1Down:Connect(function()
-	if speeds < 25 then speeds = speeds + 1 updateSpeedText() end
-end)
-mine.MouseButton1Down:Connect(function()
-	if speeds > 1 then speeds = speeds - 1 updateSpeedText() end
+-- 1. AIM (наводка на голову)
+createToggle("Aim", function(state)
+	aimEnabled = state
 end)
 
-speedBtn.MouseButton1Down:Connect(function()
-	speedOn = not speedOn
-	speedBtn.Text = speedOn and "ON" or "OFF"
-	speedBtn.BackgroundColor3 = speedOn and Color3.fromRGB(70, 255, 70) or Color3.fromRGB(255, 70, 70)
-end)
-
-RunService.Heartbeat:Connect(function()
-	if speedOn then
-		local chr = player.Character
-		local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
-		if hum and hum.MoveDirection.Magnitude > 0 then
-			local moveDir = Vector3.new(hum.MoveDirection.X, 0, hum.MoveDirection.Z)
-			if moveDir.Magnitude > 0 then
-				pcall(function() chr:TranslateBy(moveDir.Unit * (0.15 * speeds)) end)
-			end
-		end
-	end
-end)
-
--- 2. БЕСКОНЕЧНЫЕ ПРЫЖКИ
-local jumpBtn = createFunction("InfJump")
-jumpBtn.MouseButton1Down:Connect(function()
-	jumpOn = not jumpOn
-	jumpBtn.Text = jumpOn and "ON" or "OFF"
-	jumpBtn.BackgroundColor3 = jumpOn and Color3.fromRGB(70, 255, 70) or Color3.fromRGB(255, 70, 70)
-end)
-
-UserInputService.JumpRequest:Connect(function()
-	if jumpOn then
-		local chr = player.Character
-		local hrp = chr and chr:FindFirstChild("HumanoidRootPart")
-		if hrp then
-			pcall(function() hrp.AssemblyLinearVelocity = Vector3.new(hrp.AssemblyLinearVelocity.X, 45, hrp.AssemblyLinearVelocity.Z) end)
-		end
-	end
-end)
-
--- 3. NOCLIP
-local noclipBtn = createFunction("Noclip")
-noclipBtn.MouseButton1Down:Connect(function()
-	noclipOn = not noclipOn
-	noclipBtn.Text = noclipOn and "ON" or "OFF"
-	noclipBtn.BackgroundColor3 = noclipOn and Color3.fromRGB(70, 255, 70) or Color3.fromRGB(255, 70, 70)
-end)
-
-RunService.Stepped:Connect(function()
-	if noclipOn and player.Character then
-		for _, part in ipairs(player.Character:GetDescendants()) do
-			if part:IsA("BasePart") then part.CanCollide = false end
-		end
-	end
-end)
-
--- 4. HOP
-local hopBtn, hopItem = createFunction("Hop")
-local hopMine = Instance.new("TextButton")
-local hopPlus = Instance.new("TextButton")
-
-hopMine.Parent = hopItem
-hopMine.Size = UDim2.new(0, 20, 0, 20)
-hopMine.Position = UDim2.new(0.45, 0, 0.1, 0)
-hopMine.Text = "-"
-hopMine.BackgroundColor3 = Color3.fromRGB(60,60,60)
-hopMine.TextColor3 = Color3.fromRGB(255,255,255)
-roundCorners(hopMine, 4)
-
-hopPlus.Parent = hopItem
-hopPlus.Size = UDim2.new(0, 20, 0, 20)
-hopPlus.Position = UDim2.new(0.45, 0, 0.55, 0)
-hopPlus.Text = "+"
-hopPlus.BackgroundColor3 = Color3.fromRGB(60,60,60)
-hopPlus.TextColor3 = Color3.fromRGB(255,255,255)
-roundCorners(hopPlus, 4)
-
-local function updateHopText()
-	hopItem.TextLabel.Text = "Hop: " .. hops
-end
-
-hopPlus.MouseButton1Down:Connect(function()
-	if hops < 250 then hops = hops + 5 updateHopText() end
-end)
-hopMine.MouseButton1Down:Connect(function()
-	if hops > 50 then hops = hops - 5 updateHopText() end
-end)
-
-hopBtn.MouseButton1Down:Connect(function()
-	hopOn = not hopOn
-	hopBtn.Text = hopOn and "ON" or "OFF"
-	hopBtn.BackgroundColor3 = hopOn and Color3.fromRGB(70, 255, 70) or Color3.fromRGB(255, 70, 70)
-end)
-
-RunService.Heartbeat:Connect(function()
-	local chr = player.Character
-	local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
-	if hum then
-		if hopOn then
-			hum.JumpPower = hops
-			hum.UseJumpPower = true
-		else
-			if hum.JumpPower == hops then
-				hum.JumpPower = 50 
-			end
-		end
-	end
-end)
-
--- 5. NO ANIMATION
-local noAnimBtn = createFunction("No Animation")
-noAnimBtn.MouseButton1Down:Connect(function()
-	noAnimOn = not noAnimOn
-	noAnimBtn.Text = noAnimOn and "ON" or "OFF"
-	noAnimBtn.BackgroundColor3 = noAnimOn and Color3.fromRGB(70, 255, 70) or Color3.fromRGB(255, 70, 70)
-end)
-
-RunService.Heartbeat:Connect(function()
-	if noAnimOn then
-		local chr = player.Character
-		local animScript = chr and chr:FindFirstChild("Animate")
-		local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
-		
-		if animScript and animScript.Enabled then
-			animScript.Enabled = false
-		end
-		
-		if hum then
-			local animator = hum:FindFirstChildWhichIsA("Animator")
-			if animator then
-				for _, track in ipairs(animator:GetPlayingAnimationTracks()) do
-					track:Stop(0)
+RunService.RenderStepped:Connect(function()
+	if aimEnabled then
+		local closestPlayer, closestDist = nil, math.huge
+		for _, p in ipairs(Players:GetPlayers()) do
+			if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+				local hum = p.Character:FindFirstChildOfClass("Humanoid")
+				if hum and hum.Health > 0 then
+					local head = p.Character.Head
+					local screenPoint, onScreen = Camera:WorldToScreenPoint(head.Position)
+					if onScreen then
+						local dist = (Vector2.new(screenPoint.X, screenPoint.Y) - Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)).Magnitude
+						if dist < closestDist then
+							closestDist = dist
+							closestPlayer = p
+						end
+					end
 				end
 			end
 		end
-	else
-		local chr = player.Character
-		local animScript = chr and chr:FindFirstChild("Animate")
-		if animScript and not animScript.Enabled then
-			animScript.Enabled = true
+		if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("Head") then
+			Camera.CFrame = CFrame.new(Camera.CFrame.Position, closestPlayer.Character.Head.Position)
 		end
 	end
 end)
 
--- 6. FLING (Интегрированная рабочая логика из скриншота)
-local flingBtn = createFunction("Fling")
+-- 2. SILENT AIM (только голова)
+createToggle("Silent Aim", function(state)
+	silentEnabled = state
+end)
 
-local function flingLogic()
-	local c, hrp, vel, movel = nil, nil, nil, 0.1
-	while hiddenfling do
-		RunService.Heartbeat:Wait()
-		c = player.Character
-		hrp = c and c:FindFirstChild("HumanoidRootPart")
-		if hrp then
-			vel = hrp.Velocity
-			hrp.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
-			RunService.RenderStepped:Wait()
-			hrp.Velocity = vel
-			RunService.Stepped:Wait()
-			hrp.Velocity = vel + Vector3.new(0, movel, 0)
-			movel = -movel
+local mt = getrawmetatable(game)
+local oldNamecall = mt.__namecall
+setreadonly(mt, false)
+
+mt.__namecall = newcclosure(function(self, ...)
+	local args = {...}
+	local method = getnamecallmethod()
+	if silentEnabled and (method == "FireServer" or method == "InvokeServer") then
+		for _, v in ipairs(args) do
+			if typeof(v) == "Vector3" then
+				-- Ищем ближайшую голову для перенаправления луча/вектора выстрела
+				local closestHead = nil
+				local shortestDist = math.huge
+				for _, p in ipairs(Players:GetPlayers()) do
+					if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+						local hum = p.Character:FindFirstChildOfClass("Humanoid")
+						if hum and hum.Health > 0 then
+							local dist = (p.Character.Head.Position - Camera.CFrame.Position).Magnitude
+							if dist < shortestDist then
+								shortestDist = dist
+								closestHead = p.Character.Head
+							end
+						end
+					end
+				end
+				if closestHead then
+					for i, arg in ipairs(args) do
+						if typeof(arg) == "Vector3" then
+							args[i] = closestHead.Position
+						end
+					end
+				end
+			end
 		end
+	end
+	return oldNamecall(self, unpack(args))
+end)
+setreadonly(mt, true)
+
+-- 3. ESP (простой белый квадрат вокруг игрока через Drawing API)
+local espBoxes = {}
+
+local function removeEsp(player)
+	if espBoxes[player] then
+		for _, drawing in pairs(espBoxes[player]) do
+			drawing:Remove()
+		end
+		espBoxes[player] = nil
 	end
 end
 
-flingBtn.MouseButton1Down:Connect(function()
-	hiddenfling = not hiddenfling
-	flingBtn.Text = hiddenfling and "ON" or "OFF"
-	flingBtn.BackgroundColor3 = hiddenfling and Color3.fromRGB(70, 255, 70) or Color3.fromRGB(255, 70, 70)
-	
-	if hiddenfling then
-		flingThread = coroutine.create(flingLogic)
-		coroutine.resume(flingThread)
-	else
-		hiddenfling = false
+createToggle("ESP", function(state)
+	espEnabled = state
+	if not state then
+		for _, p in ipairs(Players:GetPlayers()) do
+			removeEsp(p)
+		end
 	end
 end)
 
--- 7. REFLASH (Перемотка назад на 2 секунды)
-local reflashBtn, reflashItem = createActionFunction("Reflash")
-local positionHistory = {}
-
-task.spawn(function()
-	while true do
-		task.wait(0.1)
-		local chr = player.Character
-		local hrp = chr and chr:FindFirstChild("HumanoidRootPart")
-		if hrp then
-			table.insert(positionHistory, 1, hrp.CFrame)
-			if #positionHistory > 20 then
-				table.remove(positionHistory, #positionHistory)
+RunService.RenderStepped:Connect(function()
+	if espEnabled then
+		for _, p in ipairs(Players:GetPlayers()) do
+			if p ~= LocalPlayer then
+				if p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Head") then
+					local hum = p.Character:FindFirstChildOfClass("Humanoid")
+					if hum and hum.Health > 0 then
+						if not espBoxes[p] then
+							local box = Drawing.new("Square")
+							box.Visible = false
+							box.Color = Color3.fromRGB(255, 255, 255)
+							box.Thickness = 1.5
+							box.Filled = false
+							espBoxes[p] = {box = box}
+						end
+						
+						local hrp = p.Character.HumanoidRootPart
+						local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+						if onScreen then
+							local sizeX = 2500 / pos.Z
+							local sizeY = 4000 / pos.Z
+							local box = espBoxes[p].box
+							box.Size = Vector2.new(sizeX, sizeY)
+							box.Position = Vector2.new(pos.X - sizeX / 2, pos.Y - sizeY / 2)
+							box.Visible = true
+						else
+							espBoxes[p].box.Visible = false
+						end
+					else
+						removeEsp(p)
+					end
+				else
+					removeEsp(p)
+				end
 			end
 		end
 	end
 end)
 
-reflashBtn.MouseButton1Down:Connect(function()
-	local chr = player.Character
-	local hrp = chr and chr:FindFirstChild("HumanoidRootPart")
-	if hrp and #positionHistory >= 20 then
-		pcall(function()
-			hrp.CFrame = positionHistory[20]
-			hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-		end)
-	elseif hrp and #positionHistory > 0 then
-		pcall(function()
-			hrp.CFrame = positionHistory[#positionHistory]
-			hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-		end)
+Players.PlayerRemoving:Connect(function(p)
+	removeEsp(p)
+end)
+
+-- 4. INVISIBLE (полная невидимость для всех и себя)
+createToggle("Invisible", function(state)
+	invisEnabled = state
+	local char = LocalPlayer.Character
+	if char then
+		for _, part in ipairs(char:GetDescendants()) do
+			if part:IsA("BasePart") or part:IsA("Decal") then
+				if state then
+					part.Transparency = 1
+				else
+					if part.Name == "HumanoidRootPart" then
+						part.Transparency = 1
+					else
+						part.Transparency = 0
+					end
+				end
+			end
+		end
 	end
 end)
-
-player.CharacterAdded:Connect(function()
-	speedOn = false jumpOn = false noclipOn = false hopOn = false noAnimOn = false hiddenfling = false
-	speedBtn.Text = "OFF" jumpBtn.Text = "OFF" noclipBtn.Text = "OFF" hopBtn.Text = "OFF" noAnimBtn.Text = "OFF" flingBtn.Text = "OFF"
-	speedBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
-	jumpBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
-	noclipBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
-	hopBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
-	noAnimBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
-	flingBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
-	positionHistory = {}
-end)
-
-updateSpeedText()
-updateHopText()
