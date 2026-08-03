@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
 local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 
@@ -60,7 +61,7 @@ Container.Parent = MainFrame
 Container.BackgroundTransparency = 1
 Container.Position = UDim2.new(0, 0, 0, 45)
 Container.Size = UDim2.new(1, 0, 1, -45)
-Container.CanvasSize = UDim2.new(0, 0, 0, 380)
+Container.CanvasSize = UDim2.new(0, 0, 0, 580)
 Container.ScrollBarThickness = 3
 
 local UIList = Instance.new("UIListLayout")
@@ -98,12 +99,18 @@ end
 
 local aimEnabled = false
 local silentEnabled = false
+local hitboxesEnabled = false
+local fovEnabled = false
 local espEnabled = false
+local chamsEnabled = false
+local nametagsEnabled = false
+local fullbrightEnabled = false
 local invisEnabled = false
 local hiddenfling = false
 local flingThread = nil
 local bhopEnabled = false
 local currentBhopSpeed = 16
+local spinbotEnabled = false
 local flyEnabled = false
 local tpwalking = false
 
@@ -174,6 +181,53 @@ pcall(function()
 	end
 end)
 
+createToggle("Hitboxes", function(state)
+	hitboxesEnabled = state
+end)
+
+RunService.Heartbeat:Connect(function()
+	if hitboxesEnabled then
+		pcall(function()
+			for _, p in ipairs(Players:GetPlayers()) do
+				if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+					local hum = p.Character:FindFirstChildOfClass("Humanoid")
+					if hum and hum.Health > 0 then
+						p.Character.HumanoidRootPart.Size = Vector3.new(5, 5, 5)
+						p.Character.HumanoidRootPart.Transparency = 0.7
+						p.Character.HumanoidRootPart.BrickColor = BrickColor.new("Really red")
+						p.Character.HumanoidRootPart.CanCollide = false
+					end
+				end
+			end
+		end)
+	else
+		pcall(function()
+			for _, p in ipairs(Players:GetPlayers()) do
+				if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+					p.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 1)
+					p.Character.HumanoidRootPart.Transparency = 1
+				end
+			end
+		end)
+	end
+end)
+
+createToggle("FOV Changer", function(state)
+	fovEnabled = state
+end)
+
+RunService.RenderStepped:Connect(function()
+	if fovEnabled then
+		pcall(function()
+			Camera.FieldOfView = 100
+		end)
+	else
+		pcall(function()
+			Camera.FieldOfView = 70
+		end)
+	end
+end)
+
 local espBoxes = {}
 
 local function removeEsp(player)
@@ -239,6 +293,83 @@ end)
 
 Players.PlayerRemoving:Connect(function(p)
 	removeEsp(p)
+end)
+
+createToggle("Chams", function(state)
+	chamsEnabled = state
+	pcall(function()
+		for _, p in ipairs(Players:GetPlayers()) do
+			if p ~= LocalPlayer and p.Character then
+				for _, part in ipairs(p.Character:GetDescendants()) do
+					if part:IsA("BasePart") then
+						if state then
+							local highlight = part:FindFirstChild("CustomChams")
+							if not highlight then
+								local h = Instance.new("Highlight")
+								h.Name = "CustomChams"
+								h.Adornee = p.Character
+								h.FillColor = Color3.fromRGB(0, 255, 255)
+								h.OutlineColor = Color3.fromRGB(255, 255, 255)
+								h.Parent = part
+							end
+						else
+							local highlight = part:FindFirstChild("CustomChams")
+							if highlight then highlight:Destroy() end
+						end
+					end
+				end
+			end
+		end
+	end)
+end)
+
+createToggle("NameTags", function(state)
+	nametagsEnabled = state
+	pcall(function()
+		for _, p in ipairs(Players:GetPlayers()) do
+			if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+				local head = p.Character.Head
+				if state then
+					if not head:FindFirstChild("CustomNameTag") then
+						local bg = Instance.new("BillboardGui")
+						bg.Name = "CustomNameTag"
+						bg.Size = UDim2.new(0, 100, 0, 40)
+						bg.StudsOffset = Vector3.new(0, 2.5, 0)
+						bg.AlwaysOnTop = true
+						bg.Parent = head
+						
+						local txt = Instance.new("TextLabel")
+						txt.Size = UDim2.new(1, 0, 1, 0)
+						txt.BackgroundTransparency = 1
+						txt.Text = p.Name
+						txt.TextColor3 = Color3.fromRGB(255, 255, 255)
+						txt.TextStrokeTransparency = 0
+						txt.TextSize = 14
+						txt.Font = Enum.Font.SourceSansBold
+						txt.Parent = bg
+					end
+				else
+					local tag = head:FindFirstChild("CustomNameTag")
+					if tag then tag:Destroy() end
+				end
+			end
+		end
+	end)
+end)
+
+createToggle("Fullbright", function(state)
+	fullbrightEnabled = state
+	pcall(function()
+		if state then
+			Lighting.Brightness = 2
+			Lighting.ClockTime = 14
+			Lighting.FogEnd = 100000
+			Lighting.GlobalShadows = false
+		else
+			Lighting.Brightness = 1
+			Lighting.GlobalShadows = true
+		end
+	end)
 end)
 
 createToggle("Invisible", function(state)
@@ -324,6 +455,22 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
+createToggle("SpinBot", function(state)
+	spinbotEnabled = state
+end)
+
+RunService.RenderStepped:Connect(function()
+	if spinbotEnabled then
+		pcall(function()
+			local char = LocalPlayer.Character
+			local hrp = char and char:FindFirstChild("HumanoidRootPart")
+			if hrp then
+				hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(50), 0)
+			end
+		end)
+	end
+end)
+
 createToggle("Fly", function(state)
 	flyEnabled = state
 	pcall(function()
@@ -363,7 +510,7 @@ createToggle("Fly", function(state)
 					local h = c and c:FindFirstChildWhichIsA("Humanoid")
 					while tpwalking and hb:Wait() and c and h and h.Parent do
 						if h.MoveDirection.Magnitude > 0 then
-							c:TranslateBy(h.MoveDirection)
+							c:TranslateBy(h.MoveDirection * 1.5)
 						end
 					end
 				end)
@@ -430,10 +577,10 @@ createToggle("Fly", function(state)
 					end
 					
 					if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
-						bv.velocity = ((Camera.CFrame.LookVector * (ctrl.f + ctrl.b)) + ((Camera.CFrame * CFrame.new(ctrl.l + ctrl.r, (ctrl.f + ctrl.b) * 0.2, 0).Position) - Camera.CFrame.Position)) * speed
+						bv.velocity = ((Camera.CFrame.LookVector * (ctrl.f + ctrl.b)) + ((Camera.CFrame * CFrame.new(ctrl.l + ctrl.r, (ctrl.f + ctrl.b) * 0.2, 0).Position) - Camera.CFrame.Position)) * speed * 1.5
 						lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
 					elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
-						bv.velocity = ((Camera.CFrame.LookVector * (lastctrl.f + lastctrl.b)) + ((Camera.CFrame * CFrame.new(lastctrl.l + lastctrl.r, (lastctrl.f + lastctrl.b) * 0.2, 0).Position) - Camera.CFrame.Position)) * speed
+						bv.velocity = ((Camera.CFrame.LookVector * (lastctrl.f + lastctrl.b)) + ((Camera.CFrame * CFrame.new(lastctrl.l + lastctrl.r, (lastctrl.f + lastctrl.b) * 0.2, 0).Position) - Camera.CFrame.Position)) * speed * 1.5
 					else
 						bv.velocity = Vector3.new(0, 0, 0)
 					end
