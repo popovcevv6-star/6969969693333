@@ -26,22 +26,23 @@ end
 local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Parent = ScreenGui
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-ToggleBtn.Position = UDim2.new(0.05, 0, 0.05, 0)
-ToggleBtn.Size = UDim2.new(0, 110, 0, 30)
+ToggleBtn.Position = UDim2.new(0.02, 0, 0.05, 0)
+ToggleBtn.Size = UDim2.new(0, 90, 0, 26)
 ToggleBtn.Text = "Menu"
 ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleBtn.TextSize = 14
+ToggleBtn.TextSize = 13
 ToggleBtn.Font = Enum.Font.SourceSansBold
-roundCorners(ToggleBtn, 8)
+roundCorners(ToggleBtn, 6)
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-MainFrame.Position = UDim2.new(0.05, 0, 0.12, 0)
-MainFrame.Size = UDim2.new(0, 210, 0, 420)
+MainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+MainFrame.Position = UDim2.new(0.02, 0, 0.1, 0)
+MainFrame.Size = UDim2.new(0, 180, 0, 320)
 MainFrame.Active = true
 MainFrame.Draggable = true
-roundCorners(MainFrame, 12)
+MainFrame.ClipsDescendants = true
+roundCorners(MainFrame, 10)
 
 ToggleBtn.MouseButton1Down:Connect(function()
 	MainFrame.Visible = not MainFrame.Visible
@@ -50,23 +51,23 @@ end)
 local Title = Instance.new("TextLabel")
 Title.Parent = MainFrame
 Title.BackgroundTransparency = 1
-Title.Size = UDim2.new(1, 0, 0, 30)
+Title.Size = UDim2.new(1, 0, 0, 25)
 Title.Text = "CUSTOM MENU"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 16
+Title.TextSize = 14
 Title.Font = Enum.Font.SourceSansBold
 
 local TabsContainer = Instance.new("Frame")
 TabsContainer.Parent = MainFrame
 TabsContainer.BackgroundTransparency = 1
-TabsContainer.Position = UDim2.new(0, 5, 0, 35)
-TabsContainer.Size = UDim2.new(1, -10, 0, 30)
+TabsContainer.Position = UDim2.new(0, 4, 0, 28)
+TabsContainer.Size = UDim2.new(1, -8, 0, 24)
 
 local TabListLayout = Instance.new("UIListLayout")
 TabListLayout.Parent = TabsContainer
 TabListLayout.FillDirection = Enum.FillDirection.Horizontal
 TabListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-TabListLayout.Padding = UDim.new(0, 4)
+TabListLayout.Padding = UDim.new(0, 3)
 
 local containers = {}
 local tabButtons = {}
@@ -74,34 +75,35 @@ local tabButtons = {}
 local function createTab(name)
 	local tabBtn = Instance.new("TextButton")
 	tabBtn.Parent = TabsContainer
-	tabBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-	tabBtn.Size = UDim2.new(0, 46, 0, 26)
+	tabBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	tabBtn.Size = UDim2.new(0, 40, 0, 22)
 	tabBtn.Text = name
-	tabBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-	tabBtn.TextSize = 11
+	tabBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+	tabBtn.TextSize = 10
 	tabBtn.Font = Enum.Font.SourceSansBold
-	roundCorners(tabBtn, 6)
+	roundCorners(tabBtn, 4)
 
 	local Container = Instance.new("ScrollingFrame")
 	Container.Parent = MainFrame
 	Container.BackgroundTransparency = 1
-	Container.Position = UDim2.new(0, 0, 0, 70)
-	Container.Size = UDim2.new(1, 0, 1, -70)
+	Container.Position = UDim2.new(0, 0, 0, 56)
+	Container.Size = UDim2.new(1, 0, 1, -56)
 	Container.CanvasSize = UDim2.new(0, 0, 0, 0)
 	Container.AutomaticCanvasSize = Enum.AutomaticSize.Y
-	Container.ScrollBarThickness = 3
+	Container.ScrollBarThickness = 4
+	Container.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
 	Container.Visible = false
 
 	local UIList = Instance.new("UIListLayout")
 	UIList.Parent = Container
 	UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	UIList.SortOrder = Enum.SortOrder.LayoutOrder
-	UIList.Padding = UDim.new(0, 8)
+	UIList.Padding = UDim.new(0, 6)
 
 	local UIPadding = Instance.new("UIPadding")
 	UIPadding.Parent = Container
-	UIPadding.PaddingBottom = UDim.new(0, 15)
-	UIPadding.PaddingTop = UDim.new(0, 5)
+	UIPadding.PaddingBottom = UDim.new(0, 10)
+	UIPadding.PaddingTop = UDim.new(0, 4)
 
 	containers[name] = Container
 	tabButtons[name] = tabBtn
@@ -109,11 +111,11 @@ local function createTab(name)
 	tabBtn.MouseButton1Down:Connect(function()
 		for _, c in pairs(containers) do c.Visible = false end
 		for _, b in pairs(tabButtons) do 
-			b.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-			b.TextColor3 = Color3.fromRGB(200, 200, 200)
+			b.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+			b.TextColor3 = Color3.fromRGB(180, 180, 180)
 		end
 		Container.Visible = true
-		tabBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+		tabBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
 		tabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	end)
 
@@ -126,19 +128,19 @@ local TrollTab = createTab("Troll")
 local MM2Tab = createTab("MM2")
 
 containers["Main"].Visible = true
-tabButtons["Main"].BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+tabButtons["Main"].BackgroundColor3 = Color3.fromRGB(70, 70, 70)
 tabButtons["Main"].TextColor3 = Color3.fromRGB(255, 255, 255)
 
 local function createToggle(tab, name, callback)
 	local btn = Instance.new("TextButton")
 	btn.Parent = tab
-	btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-	btn.Size = UDim2.new(0, 185, 0, 40)
+	btn.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+	btn.Size = UDim2.new(0, 160, 0, 32)
 	btn.Text = name .. ": OFF"
 	btn.TextColor3 = Color3.fromRGB(255, 100, 100)
-	btn.TextSize = 12
+	btn.TextSize = 11
 	btn.Font = Enum.Font.SourceSansBold
-	roundCorners(btn, 8)
+	roundCorners(btn, 6)
 	
 	local state = false
 	btn.MouseButton1Down:Connect(function()
@@ -146,50 +148,103 @@ local function createToggle(tab, name, callback)
 		if state then
 			btn.Text = name .. ": ON"
 			btn.TextColor3 = Color3.fromRGB(100, 255, 100)
-			btn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+			btn.BackgroundColor3 = Color3.fromRGB(65, 65, 65)
 		else
 			btn.Text = name .. ": OFF"
 			btn.TextColor3 = Color3.fromRGB(255, 100, 100)
-			btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+			btn.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
 		end
 		pcall(function() callback(state) end)
 	end)
 end
 
-local aimEnabled, silentEnabled, hitboxesEnabled, flyEnabled, bhopEnabled, clickTpEnabled = false, false, false, false, false, false
+local function createClickButton(tab, name, callback)
+	local btn = Instance.new("TextButton")
+	btn.Parent = tab
+	btn.BackgroundColor3 = Color3.fromRGB(80, 50, 50)
+	btn.Size = UDim2.new(0, 160, 0, 32)
+	btn.Text = name
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	btn.TextSize = 11
+	btn.Font = Enum.Font.SourceSansBold
+	roundCorners(btn, 6)
+	
+	btn.MouseButton1Down:Connect(function()
+		pcall(callback)
+	end)
+end
+
+local aimEnabled, hitboxesEnabled, flyEnabled, bhopEnabled = false, false, false, false
 local espEnabled, chamsEnabled, nametagsEnabled, fullbrightEnabled, fovEnabled, freecamEnabled, xrayEnabled = false, false, false, false, false, false, false
 local invisEnabled, hiddenfling, spinbotEnabled, antiflingEnabled, sitanywhereEnabled, followplayerEnabled, attachtotargetEnabled = false, false, false, false, false, false, false
-local mm2espEnabled = false
-local tpwalking = false
-local flingThread = nil
-local currentBhopSpeed = 16
+local mm2espEnabled, mm2autocoin = false, false
 
-createToggle(MainTab, "Aim", function(s) aimEnabled = s end)
-createToggle(MainTab, "Silent Aim", function(s) silentEnabled = s end)
-createToggle(MainTab, "Hitboxes", function(s) hitboxesEnabled = s end)
-createToggle(MainTab, "Fly (1.5)", function(s) flyEnabled = s end)
-createToggle(MainTab, "Bunnyhop", function(s) bhopEnabled = s end)
-createToggle(MainTab, "Click TP Tool", function(s)
-	clickTpEnabled = s
-	if s then
-		local tool = Instance.new("Tool")
-		tool.Name = "ClickTP Tool"
-		tool.RequiresHandle = false
-		tool.Activated:Connect(function()
-			local mouse = LocalPlayer:GetMouse()
-			if mouse.Target and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-				LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.Position + Vector3.new(0, 3, 0))
+createToggle(MainTab, "Aim Bot", function(s) aimEnabled = s end)
+createToggle(MainTab, "Hitboxes", function(s) 
+	hitboxesEnabled = s 
+	if not s then
+		for _, p in ipairs(Players:GetPlayers()) do
+			if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+				local hrp = p.Character.HumanoidRootPart
+				hrp.Size = Vector3.new(2, 2, 1)
+				hrp.Transparency = 1
+				hrp.CanCollide = true
 			end
-		end)
-		tool.Parent = LocalPlayer.Backpack
-	else
-		pcall(function() LocalPlayer.Backpack:FindFirstChild("ClickTP Tool"):Destroy() end)
+		end
 	end
 end)
+createToggle(MainTab, "Fly (1.5)", function(s) flyEnabled = s end)
+createToggle(MainTab, "Bunnyhop", function(s) bhopEnabled = s end)
 
-createToggle(VisualsTab, "ESP", function(s) espEnabled = s end)
-createToggle(VisualsTab, "Chams", function(s) chamsEnabled = s end)
-createToggle(VisualsTab, "NameTags", function(s) nametagsEnabled = s end)
+createClickButton(MainTab, "⚡ FLING ALL PLAYERS", function()
+	local char = LocalPlayer.Character
+	local hrp = char and char:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+	local oldPos = hrp.CFrame
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+			local tHrp = p.Character.HumanoidRootPart
+			for i = 1, 5 do
+				hrp.CFrame = tHrp.CFrame
+				hrp.Velocity = Vector3.new(30000, 30000, 30000)
+				RunService.RenderStepped:Wait()
+			end
+		end
+	end
+	hrp.Velocity = Vector3.new(0,0,0)
+	hrp.CFrame = oldPos
+end)
+
+createToggle(VisualsTab, "ESP Box", function(s) 
+	espEnabled = s 
+	if not s then
+		for _, p in ipairs(Players:GetPlayers()) do
+			if p.Character and p.Character:FindFirstChild("CustomESPBox") then
+				p.Character.CustomESPBox:Destroy()
+			end
+		end
+	end
+end)
+createToggle(VisualsTab, "Chams", function(s) 
+	chamsEnabled = s 
+	if not s then
+		for _, p in ipairs(Players:GetPlayers()) do
+			if p.Character and p.Character:FindFirstChild("CustomChamsHL") then
+				p.Character.CustomChamsHL:Destroy()
+			end
+		end
+	end
+end)
+createToggle(VisualsTab, "NameTags", function(s) 
+	nametagsEnabled = s 
+	if not s then
+		for _, p in ipairs(Players:GetPlayers()) do
+			if p.Character and p.Character:FindFirstChild("Head") and p.Character.Head:FindFirstChild("CustomNameTagGui") then
+				p.Character.Head.CustomNameTagGui:Destroy()
+			end
+		end
+	end
+end)
 createToggle(VisualsTab, "Fullbright", function(s) fullbrightEnabled = s end)
 createToggle(VisualsTab, "FOV Changer", function(s) fovEnabled = s end)
 createToggle(VisualsTab, "Freecam", function(s) freecamEnabled = s end)
@@ -212,23 +267,22 @@ createToggle(TrollTab, "Invisible", function(s)
 		end
 	end)
 end)
-createToggle(TrollTab, "Fling", function(s)
+createToggle(TrollTab, "Fling Aura", function(s)
 	hiddenfling = s
 	if s then
-		flingThread = coroutine.create(function()
+		coroutine.wrap(function()
 			while hiddenfling do
 				RunService.Heartbeat:Wait()
 				local c = LocalPlayer.Character
 				local hrp = c and c:FindFirstChild("HumanoidRootPart")
 				if hrp then
 					local vel = hrp.Velocity
-					hrp.Velocity = vel * 25000 + Vector3.new(0, 25000, 0)
+					hrp.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
 					RunService.RenderStepped:Wait()
 					hrp.Velocity = vel
 				end
 			end
-		end)
-		coroutine.resume(flingThread)
+		end)()
 	end
 end)
 createToggle(TrollTab, "SpinBot", function(s) spinbotEnabled = s end)
@@ -240,16 +294,33 @@ createToggle(TrollTab, "Anti-Fling", function(s)
 	end)
 end)
 createToggle(TrollTab, "Sit Anywhere", function(s)
-	sitanywhereEnabled = s
 	pcall(function()
 		local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
 		if hum then hum:ChangeState(s and Enum.HumanoidStateType.Seated or Enum.HumanoidStateType.Running) end
 	end)
 end)
-createToggle(TrollTab, "Follow Player", function(s) followplayerEnabled = s end)
-createToggle(TrollTab, "Attach to Player", function(s) attachtotargetEnabled = s end)
+createToggle(TrollTab, "Follow Target", function(s) followplayerEnabled = s end)
+createToggle(TrollTab, "Attach Target", function(s) attachtotargetEnabled = s end)
 
-createToggle(MM2Tab, "MM2 Role ESP", function(s) mm2espEnabled = s end)
+createToggle(MM2Tab, "MM2 Roles ESP", function(s) 
+	mm2espEnabled = s 
+	if not s then
+		for _, p in ipairs(Players:GetPlayers()) do
+			if p.Character and p.Character:FindFirstChild("MM2EspHL") then
+				p.Character.MM2EspHL:Destroy()
+			end
+		end
+	end
+end)
+createToggle(MM2Tab, "Auto Farm Coins", function(s) mm2autocoin = s end)
+createClickButton(MM2Tab, "TP to Dropped Gun", function()
+	for _, item in ipairs(workspace:GetDescendants()) do
+		if item:IsA("Tool") and item.Name == "GunDrop" then
+			local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+			if hrp then hrp.CFrame = item.CFrame end
+		end
+	end
+end)
 
 RunService.RenderStepped:Connect(function()
 	if aimEnabled then
@@ -276,7 +347,7 @@ RunService.RenderStepped:Connect(function()
 	if spinbotEnabled then
 		pcall(function()
 			local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-			if hrp then hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(50), 0) end
+			if hrp then hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(40), 0) end
 		end)
 	end
 end)
@@ -287,8 +358,10 @@ RunService.Heartbeat:Connect(function()
 			for _, p in ipairs(Players:GetPlayers()) do
 				if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
 					local hrp = p.Character.HumanoidRootPart
-					hrp.Size = Vector3.new(5, 5, 5)
-					hrp.Transparency = 0.7
+					hrp.Size = Vector3.new(12, 12, 12)
+					hrp.Transparency = 0.6
+					hrp.Color = Color3.fromRGB(255, 0, 0)
+					hrp.Material = Enum.Material.Forcefield
 					hrp.CanCollide = false
 				end
 			end
@@ -300,8 +373,7 @@ RunService.Heartbeat:Connect(function()
 			local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
 			if hum and hum.FloorMaterial ~= Enum.Material.Air then
 				hum:ChangeState(Enum.HumanoidStateType.Jumping)
-				currentBhopSpeed = math.min(48, currentBhopSpeed + 4)
-				hum.WalkSpeed = currentBhopSpeed
+				hum.WalkSpeed = 32
 			end
 		end)
 	end
@@ -332,8 +404,9 @@ RunService.RenderStepped:Connect(function()
 	for _, p in ipairs(Players:GetPlayers()) do
 		if p ~= LocalPlayer and p.Character then
 			local char = p.Character
-			local hl = char:FindFirstChild("CustomChamsHL")
+			
 			if chamsEnabled then
+				local hl = char:FindFirstChild("CustomChamsHL")
 				if not hl then
 					hl = Instance.new("Highlight")
 					hl.Name = "CustomChamsHL"
@@ -342,8 +415,41 @@ RunService.RenderStepped:Connect(function()
 					hl.OutlineColor = Color3.fromRGB(255, 255, 255)
 					hl.Parent = char
 				end
-			else
-				if hl then hl:Destroy() end
+			end
+
+			if espEnabled then
+				local box = char:FindFirstChild("CustomESPBox")
+				if not box then
+					box = Instance.new("SelectionBox")
+					box.Name = "CustomESPBox"
+					box.Adornee = char
+					box.Color3 = Color3.fromRGB(255, 255, 0)
+					box.LineThickness = 0.05
+					box.Parent = char
+				end
+			end
+
+			if nametagsEnabled and char:FindFirstChild("Head") then
+				local head = char.Head
+				local tag = head:FindFirstChild("CustomNameTagGui")
+				if not tag then
+					local bg = Instance.new("BillboardGui")
+					bg.Name = "CustomNameTagGui"
+					bg.Size = UDim2.new(0, 80, 0, 30)
+					bg.StudsOffset = Vector3.new(0, 2.5, 0)
+					bg.AlwaysOnTop = true
+					bg.Parent = head
+					
+					local txt = Instance.new("TextLabel")
+					txt.Size = UDim2.new(1, 0, 1, 0)
+					txt.BackgroundTransparency = 1
+					txt.Text = p.Name
+					txt.TextColor3 = Color3.fromRGB(255, 255, 255)
+					txt.TextStrokeTransparency = 0
+					txt.TextSize = 12
+					txt.Font = Enum.Font.SourceSansBold
+					txt.Parent = bg
+				end
 			end
 		end
 	end
@@ -356,16 +462,13 @@ RunService.RenderStepped:Connect(function()
 			local hl = char:FindFirstChild("MM2EspHL")
 			if mm2espEnabled then
 				local role = "Innocent"
-				local function check(itemContainer)
-					if not itemContainer then return end
-					for _, item in ipairs(itemContainer:GetChildren()) do
+				local function check(container)
+					if not container then return end
+					for _, item in ipairs(container:GetChildren()) do
 						if item:IsA("Tool") then
 							local n = item.Name:lower()
-							if n:find("knife") or n:find("blade") or n:find("dagger") then
-								role = "Murderer"
-							elseif n:find("gun") or n:find("revolver") or n:find("sheriff") then
-								role = "Sheriff"
-							end
+							if n:find("knife") or n:find("blade") then role = "Murderer"
+							elseif n:find("gun") or n:find("revolver") then role = "Sheriff" end
 						end
 					end
 				end
@@ -384,41 +487,24 @@ RunService.RenderStepped:Connect(function()
 				end
 				hl.FillColor = col
 				hl.OutlineColor = col
-			else
-				if hl then hl:Destroy() end
 			end
 		end
 	end
 end)
 
-RunService.RenderStepped:Connect(function()
-	for _, p in ipairs(Players:GetPlayers()) do
-		if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
-			local head = p.Character.Head
-			local tag = head:FindFirstChild("CustomNameTagGui")
-			if nametagsEnabled then
-				if not tag then
-					local bg = Instance.new("BillboardGui")
-					bg.Name = "CustomNameTagGui"
-					bg.Size = UDim2.new(0, 100, 0, 40)
-					bg.StudsOffset = Vector3.new(0, 2.5, 0)
-					bg.AlwaysOnTop = true
-					bg.Parent = head
-					
-					local txt = Instance.new("TextLabel")
-					txt.Size = UDim2.new(1, 0, 1, 0)
-					txt.BackgroundTransparency = 1
-					txt.Text = p.Name
-					txt.TextColor3 = Color3.fromRGB(255, 255, 255)
-					txt.TextStrokeTransparency = 0
-					txt.TextSize = 14
-					txt.Font = Enum.Font.SourceSansBold
-					txt.Parent = bg
+RunService.Heartbeat:Connect(function()
+	if mm2autocoin then
+		pcall(function()
+			for _, v in ipairs(workspace:GetDescendants()) do
+				if v.Name == "CoinContainer" or v.Name == "Coin" then
+					local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+					if hrp and v:IsA("BasePart") then
+						hrp.CFrame = v.CFrame
+						break
+					end
 				end
-			else
-				if tag then tag:Destroy() end
 			end
-		end
+		end)
 	end
 end)
 
@@ -431,18 +517,15 @@ RunService.RenderStepped:Connect(function()
 		Lighting.Brightness = 1
 		Lighting.GlobalShadows = true
 	end
-end)
 
-RunService.RenderStepped:Connect(function()
 	if freecamEnabled then
 		pcall(function()
 			Camera.CameraType = Enum.CameraType.Scriptable
-			local camCFrame = Camera.CFrame
 			local speed = 1
-			if UserInputService:IsKeyDown(Enum.KeyCode.W) then Camera.CFrame = camCFrame + (camCFrame.LookVector * speed) end
-			if UserInputService:IsKeyDown(Enum.KeyCode.S) then Camera.CFrame = camCFrame - (camCFrame.LookVector * speed) end
-			if UserInputService:IsKeyDown(Enum.KeyCode.A) then Camera.CFrame = camCFrame + (-camCFrame.RightVector * speed) end
-			if UserInputService:IsKeyDown(Enum.KeyCode.D) then Camera.CFrame = camCFrame + (camCFrame.RightVector * speed) end
+			if UserInputService:IsKeyDown(Enum.KeyCode.W) then Camera.CFrame = Camera.CFrame + (Camera.CFrame.LookVector * speed) end
+			if UserInputService:IsKeyDown(Enum.KeyCode.S) then Camera.CFrame = Camera.CFrame - (Camera.CFrame.LookVector * speed) end
+			if UserInputService:IsKeyDown(Enum.KeyCode.A) then Camera.CFrame = Camera.CFrame + (-Camera.CFrame.RightVector * speed) end
+			if UserInputService:IsKeyDown(Enum.KeyCode.D) then Camera.CFrame = Camera.CFrame + (Camera.CFrame.RightVector * speed) end
 		end)
 	else
 		Camera.CameraType = Enum.CameraType.Custom
