@@ -39,7 +39,7 @@ local Frame = Instance.new("Frame")
 Frame.Parent = main
 Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 Frame.Position = UDim2.new(0.1, 0, 0.4, 0)
-Frame.Size = UDim2.new(0, 180, 0, 300) -- Увеличили высоту под новую кнопку
+Frame.Size = UDim2.new(0, 180, 0, 300)
 Frame.Active = true
 Frame.Draggable = true
 roundCorners(Frame, 12)
@@ -91,7 +91,8 @@ local noclipOn = false
 local hops = 50
 local hopOn = false
 local noAnimOn = false
-local collisionOn = false
+local hiddenfling = false
+local flingThread = nil
 
 -- Вспомогательная функция создания секций с закруглением (для ON/OFF)
 local function createFunction(name)
@@ -144,7 +145,7 @@ local function createActionFunction(name)
 
 	local btn = Instance.new("TextButton")
 	btn.Parent = item
-	btn.BackgroundColor3 = Color3.fromRGB(70, 130, 180) -- Синий цвет для действия
+	btn.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
 	btn.Position = UDim2.new(0.55, 0, 0.2, 0)
 	btn.Size = UDim2.new(0, 70, 0, 30)
 	btn.Text = "USE"
@@ -328,43 +329,44 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
--- 6. COLLISION (Исправленная функция флинга: отбрасывает цель, а не вас)
-local collisionBtn = createFunction("Collision")
-collisionBtn.MouseButton1Down:Connect(function()
-	collisionOn = not collisionOn
-	collisionBtn.Text = collisionOn and "ON" or "OFF"
-	collisionBtn.BackgroundColor3 = collisionOn and Color3.fromRGB(70, 255, 70) or Color3.fromRGB(255, 70, 70)
-end)
+-- 6. FLING (Интегрированная рабочая логика из скриншота)
+local flingBtn = createFunction("Fling")
 
-RunService.Heartbeat:Connect(function()
-	if collisionOn then
-		local chr = player.Character
-		local hrp = chr and chr:FindFirstChild("HumanoidRootPart")
+local function flingLogic()
+	local c, hrp, vel, movel = nil, nil, nil, 0.1
+	while hiddenfling do
+		RunService.Heartbeat:Wait()
+		c = player.Character
+		hrp = c and c:FindFirstChild("HumanoidRootPart")
 		if hrp then
-			for _, otherPlayer in ipairs(Players:GetPlayers()) do
-				if otherPlayer ~= player and otherPlayer.Character then
-					local otherHrp = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
-					if otherHrp then
-						local distance = (hrp.Position - otherHrp.Position).Magnitude
-						if distance < 4 then
-							pcall(function()
-								-- Даем себе бесконечную массу локально, чтобы нас не отталкивало
-								hrp.AssemblyMass = 999999
-								otherHrp.AssemblyLinearVelocity = Vector3.new(math.random(-1500, 1500), 2000, math.random(-1500, 1500))
-							end)
-						end
-					end
-				end
-			end
+			vel = hrp.Velocity
+			hrp.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
+			RunService.RenderStepped:Wait()
+			hrp.Velocity = vel
+			RunService.Stepped:Wait()
+			hrp.Velocity = vel + Vector3.new(0, movel, 0)
+			movel = -movel
 		end
+	end
+end
+
+flingBtn.MouseButton1Down:Connect(function()
+	hiddenfling = not hiddenfling
+	flingBtn.Text = hiddenfling and "ON" or "OFF"
+	flingBtn.BackgroundColor3 = hiddenfling and Color3.fromRGB(70, 255, 70) or Color3.fromRGB(255, 70, 70)
+	
+	if hiddenfling then
+		flingThread = coroutine.create(flingLogic)
+		coroutine.resume(flingThread)
+	else
+		hiddenfling = false
 	end
 end)
 
--- 7. REFLASH (Перемотка назад на 1.5 секунды)
+-- 7. REFLASH (Перемотка назад на 2 секунды)
 local reflashBtn, reflashItem = createActionFunction("Reflash")
 local positionHistory = {}
 
--- Записываем позиции каждые 0.1 секунды (храним последние 1.5 секунды = 15 кадров)
 task.spawn(function()
 	while true do
 		task.wait(0.1)
@@ -372,7 +374,7 @@ task.spawn(function()
 		local hrp = chr and chr:FindFirstChild("HumanoidRootPart")
 		if hrp then
 			table.insert(positionHistory, 1, hrp.CFrame)
-			if #positionHistory > 15 then
+			if #positionHistory > 20 then
 				table.remove(positionHistory, #positionHistory)
 			end
 		end
@@ -382,14 +384,12 @@ end)
 reflashBtn.MouseButton1Down:Connect(function()
 	local chr = player.Character
 	local hrp = chr and chr:FindFirstChild("HumanoidRootPart")
-	if hrp and #positionHistory >= 15 then
-		-- Перемещаем в позицию, которая была 1.5 секунды назад
+	if hrp and #positionHistory >= 20 then
 		pcall(function()
-			hrp.CFrame = positionHistory[15]
-			hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0) -- Сбрасываем скорость при телепортации
+			hrp.CFrame = positionHistory[20]
+			hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
 		end)
 	elseif hrp and #positionHistory > 0 then
-		-- Если прошло меньше времени, телепортируем в самую старую доступную точку
 		pcall(function()
 			hrp.CFrame = positionHistory[#positionHistory]
 			hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
@@ -398,14 +398,14 @@ reflashBtn.MouseButton1Down:Connect(function()
 end)
 
 player.CharacterAdded:Connect(function()
-	speedOn = false jumpOn = false noclipOn = false hopOn = false noAnimOn = false collisionOn = false
-	speedBtn.Text = "OFF" jumpBtn.Text = "OFF" noclipBtn.Text = "OFF" hopBtn.Text = "OFF" noAnimBtn.Text = "OFF" collisionBtn.Text = "OFF"
+	speedOn = false jumpOn = false noclipOn = false hopOn = false noAnimOn = false hiddenfling = false
+	speedBtn.Text = "OFF" jumpBtn.Text = "OFF" noclipBtn.Text = "OFF" hopBtn.Text = "OFF" noAnimBtn.Text = "OFF" flingBtn.Text = "OFF"
 	speedBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
 	jumpBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
 	noclipBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
 	hopBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
 	noAnimBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
-	collisionBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
+	flingBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
 	positionHistory = {}
 end)
 
