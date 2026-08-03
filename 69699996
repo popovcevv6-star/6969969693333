@@ -269,13 +269,23 @@ RunService.Heartbeat:Connect(function()
 			local char = LocalPlayer.Character
 			local hrp = char and char:FindFirstChild("HumanoidRootPart")
 			if hrp then
+				-- Отключаем коллизию своего персонажа во время флинга, чтобы не получать отдачу
+				for _, part in ipairs(char:GetDescendants()) do
+					if part:IsA("BasePart") then
+						part.CanCollide = false
+					end
+				end
+				
 				for _, p in ipairs(Players:GetPlayers()) do
 					if p ~= LocalPlayer and p.Character then
 						local otherHrp = p.Character:FindFirstChild("HumanoidRootPart")
-						if otherHrp then
+						local otherHum = p.Character:FindFirstChildOfClass("Humanoid")
+						if otherHrp and otherHum and otherHum.Health > 0 then
 							local dist = (hrp.Position - otherHrp.Position).Magnitude
-							if dist < 6 then
-								otherHrp.Velocity = Vector3.new(math.random(-50000, 50000), 80000, math.random(-50000, 50000))
+							if dist < 8 then
+								-- Мощнейшая закрутка физики через изменение AngularVelocity и AssemblyAngularVelocity для врага
+								otherHrp.AssemblyAngularVelocity = Vector3.new(99999, 99999, 99999)
+								otherHrp.AssemblyLinearVelocity = Vector3.new(math.random(-50000, 50000), 100000, math.random(-50000, 50000))
 							end
 						end
 					end
