@@ -100,8 +100,10 @@ local aimEnabled = false
 local silentEnabled = false
 local espEnabled = false
 local invisEnabled = false
-local flingEnabled = false
+local hiddenfling = false
+local flingThread = nil
 local bhopEnabled = false
+local currentBhopSpeed = 16
 
 createToggle("Aim", function(state)
 	aimEnabled = state
@@ -259,44 +261,42 @@ createToggle("Invisible", function(state)
 	end)
 end)
 
-createToggle("Fling", function(state)
-	flingEnabled = state
-end)
+local function fling()
+	local c, hrp, vel, movel = nil, nil, nil, 0.1
+	while hiddenfling do
+		RunService.Heartbeat:Wait()
+		c = LocalPlayer.Character
+		hrp = c and c:FindFirstChild("HumanoidRootPart")
+		if hrp then
+			vel = hrp.Velocity
+			hrp.Velocity = vel * 25000 + Vector3.new(0, 25000, 0)
+			RunService.RenderStepped:Wait()
+			hrp.Velocity = vel
+			RunService.Stepped:Wait()
+			hrp.Velocity = vel + Vector3.new(0, movel, 0)
+			movel = -movel
+		end
+	end
+end
 
-RunService.Heartbeat:Connect(function()
-	if flingEnabled then
-		pcall(function()
-			local char = LocalPlayer.Character
-			local hrp = char and char:FindFirstChild("HumanoidRootPart")
-			if hrp then
-				-- Отключаем коллизию своего персонажа во время флинга, чтобы не получать отдачу
-				for _, part in ipairs(char:GetDescendants()) do
-					if part:IsA("BasePart") then
-						part.CanCollide = false
-					end
-				end
-				
-				for _, p in ipairs(Players:GetPlayers()) do
-					if p ~= LocalPlayer and p.Character then
-						local otherHrp = p.Character:FindFirstChild("HumanoidRootPart")
-						local otherHum = p.Character:FindFirstChildOfClass("Humanoid")
-						if otherHrp and otherHum and otherHum.Health > 0 then
-							local dist = (hrp.Position - otherHrp.Position).Magnitude
-							if dist < 8 then
-								-- Мощнейшая закрутка физики через изменение AngularVelocity и AssemblyAngularVelocity для врага
-								otherHrp.AssemblyAngularVelocity = Vector3.new(99999, 99999, 99999)
-								otherHrp.AssemblyLinearVelocity = Vector3.new(math.random(-50000, 50000), 100000, math.random(-50000, 50000))
-							end
-						end
-					end
-				end
-			end
-		end)
+createToggle("Fling", function(state)
+	hiddenfling = state
+	if hiddenfling then
+		flingThread = coroutine.create(fling)
+		coroutine.resume(flingThread)
 	end
 end)
 
 createToggle("Bunnyhop", function(state)
 	bhopEnabled = state
+	if not state then
+		currentBhopSpeed = 16
+		pcall(function()
+			local char = LocalPlayer.Character
+			local hum = char and char:FindFirstChildOfClass("Humanoid")
+			if hum then hum.WalkSpeed = 16 end
+		end)
+	end
 end)
 
 RunService.Heartbeat:Connect(function()
@@ -304,8 +304,19 @@ RunService.Heartbeat:Connect(function()
 		pcall(function()
 			local char = LocalPlayer.Character
 			local hum = char and char:FindFirstChildOfClass("Humanoid")
-			if hum and hum.FloorMaterial ~= Enum.Material.Air then
-				hum:ChangeState(Enum.HumanoidStateType.Jumping)
+			if hum then
+				if hum.FloorMaterial ~= Enum.Material.Air then
+					hum:ChangeState(Enum.HumanoidStateType.Jumping)
+					if currentBhopSpeed < 48 then
+						currentBhopSpeed = math.min(48, currentBhopSpeed + 4)
+					end
+				end
+				if hum.MoveDirection.Magnitude > 0 then
+					hum.WalkSpeed = currentBhopSpeed
+				else
+					currentBhopSpeed = 16
+					hum.WalkSpeed = 16
+				end
 			end
 		end)
 	end
