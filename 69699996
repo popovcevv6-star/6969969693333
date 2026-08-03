@@ -39,7 +39,7 @@ local Frame = Instance.new("Frame")
 Frame.Parent = main
 Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 Frame.Position = UDim2.new(0.1, 0, 0.4, 0)
-Frame.Size = UDim2.new(0, 180, 0, 240)
+Frame.Size = UDim2.new(0, 180, 0, 300) -- Увеличили высоту под новую кнопку
 Frame.Active = true
 Frame.Draggable = true
 roundCorners(Frame, 12)
@@ -75,7 +75,7 @@ Container.Parent = Frame
 Container.BackgroundTransparency = 1
 Container.Position = UDim2.new(0, 0, 0, 35)
 Container.Size = UDim2.new(1, 0, 1, -35)
-Container.CanvasSize = UDim2.new(0, 0, 0, 340)
+Container.CanvasSize = UDim2.new(0, 0, 0, 400)
 Container.ScrollBarThickness = 4
 
 local Layout = Instance.new("UIListLayout")
@@ -93,7 +93,7 @@ local hopOn = false
 local noAnimOn = false
 local collisionOn = false
 
--- Вспомогательная функция создания секций с закруглением
+-- Вспомогательная функция создания секций с закруглением (для ON/OFF)
 local function createFunction(name)
 	local item = Instance.new("Frame")
 	item.Size = UDim2.new(1, -6, 0, 50)
@@ -117,6 +117,37 @@ local function createFunction(name)
 	btn.Position = UDim2.new(0.65, 0, 0.2, 0)
 	btn.Size = UDim2.new(0, 50, 0, 30)
 	btn.Text = "OFF"
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	btn.TextSize = 12
+	roundCorners(btn, 6)
+
+	return btn, item
+end
+
+-- Вспомогательная функция для кнопок без ON/OFF (просто нажатие)
+local function createActionFunction(name)
+	local item = Instance.new("Frame")
+	item.Size = UDim2.new(1, -6, 0, 50)
+	item.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+	item.Parent = Container
+	roundCorners(item, 8)
+
+	local label = Instance.new("TextLabel")
+	label.Parent = item
+	label.BackgroundTransparency = 1
+	label.Position = UDim2.new(0, 5, 0, 0)
+	label.Size = UDim2.new(0.5, 0, 1, 0)
+	label.Text = name
+	label.TextColor3 = Color3.fromRGB(255, 255, 255)
+	label.TextSize = 14
+	label.TextXAlignment = Enum.TextXAlignment.Left
+
+	local btn = Instance.new("TextButton")
+	btn.Parent = item
+	btn.BackgroundColor3 = Color3.fromRGB(70, 130, 180) -- Синий цвет для действия
+	btn.Position = UDim2.new(0.55, 0, 0.2, 0)
+	btn.Size = UDim2.new(0, 70, 0, 30)
+	btn.Text = "USE"
 	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	btn.TextSize = 12
 	roundCorners(btn, 6)
@@ -297,7 +328,7 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
--- 6. COLLISION (Флинг чужих игроков при касании с усилением в 2 раза)
+-- 6. COLLISION (Исправленная функция флинга: отбрасывает цель, а не вас)
 local collisionBtn = createFunction("Collision")
 collisionBtn.MouseButton1Down:Connect(function()
 	collisionOn = not collisionOn
@@ -310,9 +341,6 @@ RunService.Heartbeat:Connect(function()
 		local chr = player.Character
 		local hrp = chr and chr:FindFirstChild("HumanoidRootPart")
 		if hrp then
-			-- Защищаем себя от отдачи
-			hrp.CustomPhysicalProperties = PhysicalProperties.new(100, 0, 0, 100, 100)
-			
 			for _, otherPlayer in ipairs(Players:GetPlayers()) do
 				if otherPlayer ~= player and otherPlayer.Character then
 					local otherHrp = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -320,13 +348,52 @@ RunService.Heartbeat:Connect(function()
 						local distance = (hrp.Position - otherHrp.Position).Magnitude
 						if distance < 4 then
 							pcall(function()
-								otherHrp.AssemblyLinearVelocity = Vector3.new(math.random(-1000, 1000), 2000, math.random(-1000, 1000))
+								-- Даем себе бесконечную массу локально, чтобы нас не отталкивало
+								hrp.AssemblyMass = 999999
+								otherHrp.AssemblyLinearVelocity = Vector3.new(math.random(-1500, 1500), 2000, math.random(-1500, 1500))
 							end)
 						end
 					end
 				end
 			end
 		end
+	end
+end)
+
+-- 7. REFLASH (Перемотка назад на 1.5 секунды)
+local reflashBtn, reflashItem = createActionFunction("Reflash")
+local positionHistory = {}
+
+-- Записываем позиции каждые 0.1 секунды (храним последние 1.5 секунды = 15 кадров)
+task.spawn(function()
+	while true do
+		task.wait(0.1)
+		local chr = player.Character
+		local hrp = chr and chr:FindFirstChild("HumanoidRootPart")
+		if hrp then
+			table.insert(positionHistory, 1, hrp.CFrame)
+			if #positionHistory > 15 then
+				table.remove(positionHistory, #positionHistory)
+			end
+		end
+	end
+end)
+
+reflashBtn.MouseButton1Down:Connect(function()
+	local chr = player.Character
+	local hrp = chr and chr:FindFirstChild("HumanoidRootPart")
+	if hrp and #positionHistory >= 15 then
+		-- Перемещаем в позицию, которая была 1.5 секунды назад
+		pcall(function()
+			hrp.CFrame = positionHistory[15]
+			hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0) -- Сбрасываем скорость при телепортации
+		end)
+	elseif hrp and #positionHistory > 0 then
+		-- Если прошло меньше времени, телепортируем в самую старую доступную точку
+		pcall(function()
+			hrp.CFrame = positionHistory[#positionHistory]
+			hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+		end)
 	end
 end)
 
@@ -339,6 +406,7 @@ player.CharacterAdded:Connect(function()
 	hopBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
 	noAnimBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
 	collisionBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
+	positionHistory = {}
 end)
 
 updateSpeedText()
