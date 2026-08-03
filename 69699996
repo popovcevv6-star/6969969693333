@@ -1,635 +1,410 @@
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local Lighting = game:GetService("Lighting")
-local Camera = workspace.CurrentCamera
-local LocalPlayer = Players.LocalPlayer
+-- SAFEMODE DELTA EXECUTOR COMPATIBLE
+local function SafeInit()
+	local Players = game:GetService("Players")
+	local RunService = game:GetService("RunService")
+	local UserInputService = game:GetService("UserInputService")
+	local Lighting = game:GetService("Lighting")
+	local Camera = workspace.CurrentCamera
+	local LocalPlayer = Players.LocalPlayer
 
-if not LocalPlayer then return end
+	if not LocalPlayer then return end
 
-pcall(function()
-	local existing = LocalPlayer.PlayerGui:FindFirstChild("NewCustomMenu")
-	if existing then existing:Destroy() end
-end)
-
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "NewCustomMenu"
-ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-ScreenGui.ResetOnSpawn = false
-
-local function roundCorners(instance, radius)
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, radius)
-	corner.Parent = instance
-end
-
-local ToggleBtn = Instance.new("TextButton")
-ToggleBtn.Parent = ScreenGui
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-ToggleBtn.Position = UDim2.new(0.02, 0, 0.05, 0)
-ToggleBtn.Size = UDim2.new(0, 90, 0, 26)
-ToggleBtn.Text = "Menu"
-ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleBtn.TextSize = 13
-ToggleBtn.Font = Enum.Font.SourceSansBold
-roundCorners(ToggleBtn, 6)
-
-local MainFrame = Instance.new("Frame")
-MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-MainFrame.Position = UDim2.new(0.02, 0, 0.1, 0)
-MainFrame.Size = UDim2.new(0, 180, 0, 320)
-MainFrame.Active = true
-MainFrame.Draggable = true
-MainFrame.ClipsDescendants = true
-roundCorners(MainFrame, 10)
-
-ToggleBtn.MouseButton1Down:Connect(function()
-	MainFrame.Visible = not MainFrame.Visible
-end)
-
-local Title = Instance.new("TextLabel")
-Title.Parent = MainFrame
-Title.BackgroundTransparency = 1
-Title.Size = UDim2.new(1, 0, 0, 25)
-Title.Text = "CUSTOM MENU"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 14
-Title.Font = Enum.Font.SourceSansBold
-
-local TabsContainer = Instance.new("Frame")
-TabsContainer.Parent = MainFrame
-TabsContainer.BackgroundTransparency = 1
-TabsContainer.Position = UDim2.new(0, 4, 0, 28)
-TabsContainer.Size = UDim2.new(1, -8, 0, 24)
-
-local TabListLayout = Instance.new("UIListLayout")
-TabListLayout.Parent = TabsContainer
-TabListLayout.FillDirection = Enum.FillDirection.Horizontal
-TabListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-TabListLayout.Padding = UDim.new(0, 3)
-
-local containers = {}
-local tabButtons = {}
-
-local function createTab(name)
-	local tabBtn = Instance.new("TextButton")
-	tabBtn.Parent = TabsContainer
-	tabBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-	tabBtn.Size = UDim2.new(0, 40, 0, 22)
-	tabBtn.Text = name
-	tabBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
-	tabBtn.TextSize = 10
-	tabBtn.Font = Enum.Font.SourceSansBold
-	roundCorners(tabBtn, 4)
-
-	local Container = Instance.new("ScrollingFrame")
-	Container.Parent = MainFrame
-	Container.BackgroundTransparency = 1
-	Container.Position = UDim2.new(0, 0, 0, 56)
-	Container.Size = UDim2.new(1, 0, 1, -56)
-	Container.CanvasSize = UDim2.new(0, 0, 0, 0)
-	Container.AutomaticCanvasSize = Enum.AutomaticSize.Y
-	Container.ScrollBarThickness = 4
-	Container.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
-	Container.Visible = false
-
-	local UIList = Instance.new("UIListLayout")
-	UIList.Parent = Container
-	UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
-	UIList.SortOrder = Enum.SortOrder.LayoutOrder
-	UIList.Padding = UDim.new(0, 6)
-
-	local UIPadding = Instance.new("UIPadding")
-	UIPadding.Parent = Container
-	UIPadding.PaddingBottom = UDim.new(0, 10)
-	UIPadding.PaddingTop = UDim.new(0, 4)
-
-	containers[name] = Container
-	tabButtons[name] = tabBtn
-
-	tabBtn.MouseButton1Down:Connect(function()
-		for _, c in pairs(containers) do c.Visible = false end
-		for _, b in pairs(tabButtons) do 
-			b.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-			b.TextColor3 = Color3.fromRGB(180, 180, 180)
-		end
-		Container.Visible = true
-		tabBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-		tabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-	end)
-
-	return Container
-end
-
-local MainTab = createTab("Main")
-local VisualsTab = createTab("Visuals")
-local TrollTab = createTab("Troll")
-local MM2Tab = createTab("MM2")
-
-containers["Main"].Visible = true
-tabButtons["Main"].BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-tabButtons["Main"].TextColor3 = Color3.fromRGB(255, 255, 255)
-
-local function createToggle(tab, name, callback)
-	local btn = Instance.new("TextButton")
-	btn.Parent = tab
-	btn.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
-	btn.Size = UDim2.new(0, 160, 0, 32)
-	btn.Text = name .. ": OFF"
-	btn.TextColor3 = Color3.fromRGB(255, 100, 100)
-	btn.TextSize = 11
-	btn.Font = Enum.Font.SourceSansBold
-	roundCorners(btn, 6)
-	
-	local state = false
-	btn.MouseButton1Down:Connect(function()
-		state = not state
-		if state then
-			btn.Text = name .. ": ON"
-			btn.TextColor3 = Color3.fromRGB(100, 255, 100)
-			btn.BackgroundColor3 = Color3.fromRGB(65, 65, 65)
-		else
-			btn.Text = name .. ": OFF"
-			btn.TextColor3 = Color3.fromRGB(255, 100, 100)
-			btn.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
-		end
-		pcall(function() callback(state) end)
-	end)
-end
-
-local function createClickButton(tab, name, callback)
-	local btn = Instance.new("TextButton")
-	btn.Parent = tab
-	btn.BackgroundColor3 = Color3.fromRGB(80, 50, 50)
-	btn.Size = UDim2.new(0, 160, 0, 32)
-	btn.Text = name
-	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-	btn.TextSize = 11
-	btn.Font = Enum.Font.SourceSansBold
-	roundCorners(btn, 6)
-	
-	btn.MouseButton1Down:Connect(function()
-		pcall(callback)
-	end)
-end
-
--- Переменные функций
-local aimEnabled, hitboxesEnabled, flyEnabled, bhopEnabled = false, false, false, false
-local platformGunEnabled, toolReachEnabled, autoClickerEnabled, infZoomEnabled = false, false, false, false
-local espEnabled, chamsEnabled, nametagsEnabled, fullbrightEnabled, fovEnabled, freecamEnabled, xrayEnabled = false, false, false, false, false, false, false
-local invisEnabled, flingEnabled, spinbotEnabled, antiflingEnabled, followplayerEnabled, attachtotargetEnabled = false, false, false, false, false, false
-local mm2espEnabled, mm2autocoin = false, false
-
--- Main Tab
-createToggle(MainTab, "Aim Bot", function(s) aimEnabled = s end)
-createToggle(MainTab, "Hitboxes", function(s) 
-	hitboxesEnabled = s 
-	if not s then
-		for _, p in ipairs(Players:GetPlayers()) do
-			if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-				local hrp = p.Character.HumanoidRootPart
-				hrp.Size = Vector3.new(2, 2, 1)
-				hrp.Transparency = 1
-				hrp.CanCollide = true
-			end
-		end
-	end
-end)
-createToggle(MainTab, "Fly [Press 2]", function(s) 
-	flyEnabled = s 
-	local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-	if hrp then
-		local bv = hrp:FindFirstChild("FlyVelocity")
-		local bg = hrp:FindFirstChild("FlyGyro")
-		if not s then
-			if bv then bv:Destroy() end
-			if bg then bg:Destroy() end
-		end
-	end
-end)
-createToggle(MainTab, "Bunnyhop", function(s) bhopEnabled = s end)
-createToggle(MainTab, "Platform Gun", function(s) platformGunEnabled = s end)
-createToggle(MainTab, "Tool Reach", function(s) toolReachEnabled = s end)
-createToggle(MainTab, "Auto Clicker", function(s) autoClickerEnabled = s end)
-createToggle(MainTab, "Infinite Zoom", function(s) 
-	infZoomEnabled = s 
-	LocalPlayer.CameraMaxZoomDistance = s and 999999 or 400
-end)
-
--- Visuals Tab
-createToggle(VisualsTab, "ESP Box", function(s) espEnabled = s end)
-createToggle(VisualsTab, "Chams", function(s) 
-	chamsEnabled = s 
-	if not s then
-		for _, p in ipairs(Players:GetPlayers()) do
-			if p.Character and p.Character:FindFirstChild("CustomChamsHL") then
-				p.Character.CustomChamsHL:Destroy()
-			end
-		end
-	end
-end)
-createToggle(VisualsTab, "NameTags", function(s) 
-	nametagsEnabled = s 
-	if not s then
-		for _, p in ipairs(Players:GetPlayers()) do
-			if p.Character and p.Character:FindFirstChild("Head") and p.Character.Head:FindFirstChild("CustomNameTagGui") then
-				p.Character.Head.CustomNameTagGui:Destroy()
-			end
-		end
-	end
-end)
-createToggle(VisualsTab, "Fullbright", function(s) fullbrightEnabled = s end)
-createToggle(VisualsTab, "FOV Changer", function(s) fovEnabled = s end)
-createToggle(VisualsTab, "Freecam", function(s) freecamEnabled = s end)
-createToggle(VisualsTab, "X-Ray", function(s)
-	xrayEnabled = s
-	for _, part in ipairs(workspace:GetDescendants()) do
-		if part:IsA("BasePart") and not part:IsDescendantOf(LocalPlayer.Character) then
-			part.LocalTransparencyModifier = s and 0.5 or 0
-		end
-	end
-end)
-
--- Troll Tab
-createToggle(TrollTab, "Invisible", function(s)
-	invisEnabled = s
+	-- Удаляем старое меню, если есть
 	pcall(function()
-		for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
-			if part:IsA("BasePart") or part:IsA("Decal") then
-				part.Transparency = s and 1 or (part.Name == "HumanoidRootPart" and 1 or 0)
-			end
-		end
+		local existing = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("NewCustomMenu")
+		if existing then existing:Destroy() end
 	end)
-end)
-createToggle(TrollTab, "Fling", function(s)
-	flingEnabled = s
-	if s then
-		coroutine.wrap(function()
-			while flingEnabled do
-				RunService.Heartbeat:Wait()
-				local c = LocalPlayer.Character
-				local hrp = c and c:FindFirstChild("HumanoidRootPart")
-				if hrp then
-					local vel = hrp.Velocity
-					hrp.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
-					RunService.RenderStepped:Wait()
-					hrp.Velocity = vel
-				end
-			end
-		end)()
+
+	local ScreenGui = Instance.new("ScreenGui")
+	ScreenGui.Name = "NewCustomMenu"
+	ScreenGui.ResetOnSpawn = false
+	ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+	local function roundCorners(instance, radius)
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0, radius)
+		corner.Parent = instance
 	end
-end)
-createToggle(TrollTab, "SpinBot", function(s) spinbotEnabled = s end)
-createToggle(TrollTab, "Anti-Fling", function(s)
-	antiflingEnabled = s
-end)
-createToggle(TrollTab, "Sit Anywhere", function(s)
-	pcall(function()
-		local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-		if hum then hum:ChangeState(s and Enum.HumanoidStateType.Seated or Enum.HumanoidStateType.Running) end
+
+	local ToggleBtn = Instance.new("TextButton")
+	ToggleBtn.Parent = ScreenGui
+	ToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	ToggleBtn.Position = UDim2.new(0.02, 0, 0.05, 0)
+	ToggleBtn.Size = UDim2.new(0, 90, 0, 26)
+	ToggleBtn.Text = "Menu"
+	ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	ToggleBtn.TextSize = 13
+	ToggleBtn.Font = Enum.Font.SourceSansBold
+	roundCorners(ToggleBtn, 6)
+
+	local MainFrame = Instance.new("Frame")
+	MainFrame.Parent = ScreenGui
+	MainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+	MainFrame.Position = UDim2.new(0.02, 0, 0.1, 0)
+	MainFrame.Size = UDim2.new(0, 180, 0, 320)
+	MainFrame.Active = true
+	MainFrame.Draggable = true
+	MainFrame.ClipsDescendants = true
+	roundCorners(MainFrame, 10)
+
+	ToggleBtn.MouseButton1Click:Connect(function()
+		MainFrame.Visible = not MainFrame.Visible
 	end)
-end)
-createToggle(TrollTab, "Follow Target", function(s) followplayerEnabled = s end)
-createToggle(TrollTab, "Attach Target", function(s) attachtotargetEnabled = s end)
 
--- MM2 Tab
-createToggle(MM2Tab, "MM2 Roles ESP", function(s) 
-	mm2espEnabled = s 
-	if not s then
-		for _, p in ipairs(Players:GetPlayers()) do
-			if p.Character and p.Character:FindFirstChild("MM2EspHL") then
-				p.Character.MM2EspHL:Destroy()
+	local Title = Instance.new("TextLabel")
+	Title.Parent = MainFrame
+	Title.BackgroundTransparency = 1
+	Title.Size = UDim2.new(1, 0, 0, 25)
+	Title.Text = "CUSTOM MENU"
+	Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Title.TextSize = 14
+	Title.Font = Enum.Font.SourceSansBold
+
+	local TabsContainer = Instance.new("Frame")
+	TabsContainer.Parent = MainFrame
+	TabsContainer.BackgroundTransparency = 1
+	TabsContainer.Position = UDim2.new(0, 4, 0, 28)
+	TabsContainer.Size = UDim2.new(1, -8, 0, 24)
+
+	local TabListLayout = Instance.new("UIListLayout")
+	TabListLayout.Parent = TabsContainer
+	TabListLayout.FillDirection = Enum.FillDirection.Horizontal
+	TabListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	TabListLayout.Padding = UDim.new(0, 3)
+
+	local containers = {}
+	local tabButtons = {}
+
+	local function createTab(name)
+		local tabBtn = Instance.new("TextButton")
+		tabBtn.Parent = TabsContainer
+		tabBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+		tabBtn.Size = UDim2.new(0, 40, 0, 22)
+		tabBtn.Text = name
+		tabBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+		tabBtn.TextSize = 10
+		tabBtn.Font = Enum.Font.SourceSansBold
+		roundCorners(tabBtn, 4)
+
+		local Container = Instance.new("ScrollingFrame")
+		Container.Parent = MainFrame
+		Container.BackgroundTransparency = 1
+		Container.Position = UDim2.new(0, 0, 0, 56)
+		Container.Size = UDim2.new(1, 0, 1, -56)
+		Container.CanvasSize = UDim2.new(0, 0, 0, 0)
+		Container.AutomaticCanvasSize = Enum.AutomaticSize.Y
+		Container.ScrollBarThickness = 4
+		Container.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
+		Container.Visible = false
+
+		local UIList = Instance.new("UIListLayout")
+		UIList.Parent = Container
+		UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+		UIList.SortOrder = Enum.SortOrder.LayoutOrder
+		UIList.Padding = UDim.new(0, 6)
+
+		local UIPadding = Instance.new("UIPadding")
+		UIPadding.Parent = Container
+		UIPadding.PaddingBottom = UDim.new(0, 10)
+		UIPadding.PaddingTop = UDim.new(0, 4)
+
+		containers[name] = Container
+		tabButtons[name] = tabBtn
+
+		tabBtn.MouseButton1Click:Connect(function()
+			for _, c in pairs(containers) do c.Visible = false end
+			for _, b in pairs(tabButtons) do 
+				b.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+				b.TextColor3 = Color3.fromRGB(180, 180, 180)
 			end
-		end
-	end
-end)
-createToggle(MM2Tab, "Auto Farm Coins", function(s) mm2autocoin = s end)
-createClickButton(MM2Tab, "TP to Dropped Gun", function()
-	for _, item in ipairs(workspace:GetDescendants()) do
-		if item:IsA("Tool") and item.Name == "GunDrop" then
-			local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-			if hrp and item:IsA("BasePart") then hrp.CFrame = item.CFrame end
-		end
-	end
-end)
-
--- ESP Box Drawing
-local espBoxes = {}
-local function createEspBox(player)
-	pcall(function()
-		local box = Drawing.new("Square")
-		box.Color = Color3.fromRGB(255, 0, 0)
-		box.Thickness = 1.5
-		box.Filled = false
-		box.Transparency = 1
-		box.Visible = false
-		espBoxes[player] = box
-	end)
-end
-
-for _, p in ipairs(Players:GetPlayers()) do
-	if p ~= LocalPlayer then createEspBox(p) end
-end
-Players.PlayerAdded:Connect(function(p) createEspBox(p) end)
-Players.PlayerRemoving:Connect(function(p)
-	if espBoxes[p] then
-		pcall(function() espBoxes[p]:Remove() end)
-		espBoxes[p] = nil
-	end
-end)
-
--- Platform Gun & AutoClicker
-local mouse = LocalPlayer:GetMouse()
-mouse.Button1Down:Connect(function()
-	if platformGunEnabled then
-		pcall(function()
-			local p = Instance.new("Part")
-			p.Size = Vector3.new(4, 1, 4)
-			p.Position = mouse.Hit.Position + Vector3.new(0, 1, 0)
-			p.Anchored = true
-			p.BrickColor = BrickColor.random()
-			p.Parent = workspace
+			Container.Visible = true
+			tabBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+			tabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 		end)
-	end
-end)
 
-task.spawn(function()
-	while true do
-		task.wait(0.05)
-		if autoClickerEnabled then
-			pcall(function()
-				if mouse1click then
-					mouse1click()
-				end
-			end)
-		end
-	end
-end)
-
-RunService.RenderStepped:Connect(function()
-	if aimEnabled then
-		pcall(function()
-			local closestPlayer, closestDist = nil, math.huge
-			for _, p in ipairs(Players:GetPlayers()) do
-				if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
-					local hum = p.Character:FindFirstChildOfClass("Humanoid")
-					if hum and hum.Health > 0 then
-						local screenPoint, onScreen = Camera:WorldToScreenPoint(p.Character.Head.Position)
-						if onScreen then
-							local dist = (Vector2.new(screenPoint.X, screenPoint.Y) - Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)).Magnitude
-							if dist < closestDist then closestDist, closestPlayer = dist, p end
-						end
-					end
-				end
-			end
-			if closestPlayer then Camera.CFrame = CFrame.new(Camera.CFrame.Position, closestPlayer.Character.Head.Position) end
-		end)
+		return Container
 	end
 
-	if fovEnabled then Camera.FieldOfView = 100 else Camera.FieldOfView = 70 end
+	local MainTab = createTab("Main")
+	local VisualsTab = createTab("Visuals")
+	local TrollTab = createTab("Troll")
+	local MM2Tab = createTab("MM2")
 
-	if spinbotEnabled then
-		pcall(function()
-			local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-			if hrp then hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(40), 0) end
-		end)
-	end
+	containers["Main"].Visible = true
+	tabButtons["Main"].BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+	tabButtons["Main"].TextColor3 = Color3.fromRGB(255, 255, 255)
 
-	for player, box in pairs(espBoxes) do
-		if espEnabled and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChildOfClass("Humanoid") and player.Character.Humanoid.Health > 0 then
-			local hrp = player.Character.HumanoidRootPart
-			local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
-			if onScreen then
-				local sizeX = 2000 / pos.Z
-				local sizeY = 3000 / pos.Z
-				box.Size = Vector2.new(sizeX, sizeY)
-				box.Position = Vector2.new(pos.X - sizeX / 2, pos.Y - sizeY / 2)
-				box.Visible = true
+	local function createToggle(tab, name, callback)
+		local btn = Instance.new("TextButton")
+		btn.Parent = tab
+		btn.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+		btn.Size = UDim2.new(0, 160, 0, 32)
+		btn.Text = name .. ": OFF"
+		btn.TextColor3 = Color3.fromRGB(255, 100, 100)
+		btn.TextSize = 11
+		btn.Font = Enum.Font.SourceSansBold
+		roundCorners(btn, 6)
+		
+		local state = false
+		btn.MouseButton1Click:Connect(function()
+			state = not state
+			if state then
+				btn.Text = name .. ": ON"
+				btn.TextColor3 = Color3.fromRGB(100, 255, 100)
+				btn.BackgroundColor3 = Color3.fromRGB(65, 65, 65)
 			else
-				box.Visible = false
+				btn.Text = name .. ": OFF"
+				btn.TextColor3 = Color3.fromRGB(255, 100, 100)
+				btn.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
 			end
-		else
-			if box then box.Visible = false end
-		end
-	end
-end)
-
-RunService.Heartbeat:Connect(function()
-	if antiflingEnabled then
-		pcall(function()
-			for _, p in ipairs(Players:GetPlayers()) do
-				if p ~= LocalPlayer and p.Character then
-					for _, part in ipairs(p.Character:GetDescendants()) do
-						if part:IsA("BasePart") then
-							part.CanCollide = false
-						end
-					end
-				end
-			end
+			pcall(function() callback(state) end)
 		end)
 	end
 
-	if flyEnabled then
-		pcall(function()
-			local char = LocalPlayer.Character
-			local hrp = char and char:FindFirstChild("HumanoidRootPart")
-			if hrp then
-				local bv = hrp:FindFirstChild("FlyVelocity") or Instance.new("BodyVelocity")
-				bv.Name = "FlyVelocity"
-				bv.Parent = hrp
-				bv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-
-				local bg = hrp:FindFirstChild("FlyGyro") or Instance.new("BodyGyro")
-				bg.Name = "FlyGyro"
-				bg.Parent = hrp
-				bg.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
-				bg.CFrame = Camera.CFrame
-
-				if UserInputService:IsKeyDown(Enum.KeyCode.Two) then
-					bv.Velocity = Camera.CFrame.LookVector * 70
-				else
-					bv.Velocity = Vector3.new(0, 0, 0)
-				end
-			end
+	local function createClickButton(tab, name, callback)
+		local btn = Instance.new("TextButton")
+		btn.Parent = tab
+		btn.BackgroundColor3 = Color3.fromRGB(80, 50, 50)
+		btn.Size = UDim2.new(0, 160, 0, 32)
+		btn.Text = name
+		btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+		btn.TextSize = 11
+		btn.Font = Enum.Font.SourceSansBold
+		roundCorners(btn, 6)
+		
+		btn.MouseButton1Click:Connect(function()
+			pcall(callback)
 		end)
 	end
 
-	if hitboxesEnabled then
-		pcall(function()
+	-- Переменные
+	local aimEnabled, hitboxesEnabled, flyEnabled, bhopEnabled = false, false, false, false
+	local platformGunEnabled, toolReachEnabled, autoClickerEnabled, infZoomEnabled = false, false, false, false
+	local espEnabled, chamsEnabled, nametagsEnabled, fullbrightEnabled, fovEnabled, freecamEnabled, xrayEnabled = false, false, false, false, false, false, false
+	local invisEnabled, flingEnabled, spinbotEnabled, antiflingEnabled, followplayerEnabled, attachtotargetEnabled = false, false, false, false, false, false
+	local mm2espEnabled, mm2autocoin = false, false
+
+	-- Main Tab
+	createToggle(MainTab, "Aim Bot", function(s) aimEnabled = s end)
+	createToggle(MainTab, "Hitboxes", function(s) 
+		hitboxesEnabled = s 
+		if not s then
 			for _, p in ipairs(Players:GetPlayers()) do
 				if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
 					local hrp = p.Character.HumanoidRootPart
-					hrp.Size = Vector3.new(12, 12, 12)
-					hrp.Transparency = 0.6
-					hrp.Color = Color3.fromRGB(255, 0, 0)
-					hrp.Material = Enum.Material.Forcefield
-					hrp.CanCollide = false
-				end
-			end
-		end)
-	end
-
-	if toolReachEnabled then
-		pcall(function()
-			local char = LocalPlayer.Character
-			local tool = char and char:FindFirstChildOfClass("Tool")
-			if tool then
-				for _, part in ipairs(tool:GetDescendants()) do
-					if part:IsA("BasePart") then
-						part.Size = Vector3.new(10, 10, 10)
-						part.Transparency = 0.9
-						part.CanCollide = false
-					end
-				end
-			end
-		end)
-	end
-
-	if bhopEnabled then
-		pcall(function()
-			local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-			if hum and hum.FloorMaterial ~= Enum.Material.Air then
-				hum:ChangeState(Enum.HumanoidStateType.Jumping)
-				hum.WalkSpeed = 32
-			end
-		end)
-	end
-
-	if followplayerEnabled or attachtotargetEnabled then
-		pcall(function()
-			local target, minDist = nil, math.huge
-			for _, p in ipairs(Players:GetPlayers()) do
-				if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-					local dist = (p.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-					if dist < minDist then minDist, target = dist, p end
-				end
-			end
-			if target and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-				local myHrp = LocalPlayer.Character.HumanoidRootPart
-				local tHrp = target.Character.HumanoidRootPart
-				if attachtotargetEnabled then
-					myHrp.CFrame = tHrp.CFrame * CFrame.new(0, 3, 2)
-				elseif followplayerEnabled then
-					LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):MoveTo(tHrp.Position)
-				end
-			end
-		end)
-	end
-end)
-
-RunService.RenderStepped:Connect(function()
-	for _, p in ipairs(Players:GetPlayers()) do
-		if p ~= LocalPlayer and p.Character then
-			local char = p.Character
-			
-			if chamsEnabled then
-				local hl = char:FindFirstChild("CustomChamsHL")
-				if not hl then
-					hl = Instance.new("Highlight")
-					hl.Name = "CustomChamsHL"
-					hl.Adornee = char
-					hl.FillColor = Color3.fromRGB(0, 255, 255)
-					hl.OutlineColor = Color3.fromRGB(255, 255, 255)
-					hl.AlwaysOnTop = true
-					hl.Parent = char
-				end
-			end
-
-			if nametagsEnabled and char:FindFirstChild("Head") then
-				local head = char.Head
-				local tag = head:FindFirstChild("CustomNameTagGui")
-				if not tag then
-					local bg = Instance.new("BillboardGui")
-					bg.Name = "CustomNameTagGui"
-					bg.Size = UDim2.new(0, 80, 0, 30)
-					bg.StudsOffset = Vector3.new(0, 2.5, 0)
-					bg.AlwaysOnTop = true
-					bg.Parent = head
-					
-					local txt = Instance.new("TextLabel")
-					txt.Size = UDim2.new(1, 0, 1, 0)
-					txt.BackgroundTransparency = 1
-					txt.Text = p.Name
-					txt.TextColor3 = Color3.fromRGB(255, 255, 255)
-					txt.TextStrokeTransparency = 0
-					txt.TextSize = 12
-					txt.Font = Enum.Font.SourceSansBold
-					txt.Parent = bg
+					hrp.Size = Vector3.new(2, 2, 1)
+					hrp.Transparency = 1
+					hrp.CanCollide = true
 				end
 			end
 		end
-	end
-end)
+	end)
+	createToggle(MainTab, "Fly [Press 2]", function(s) 
+		flyEnabled = s 
+		local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+		if hrp then
+			local bv = hrp:FindFirstChild("FlyVelocity")
+			local bg = hrp:FindFirstChild("FlyGyro")
+			if not s then
+				if bv then bv:Destroy() end
+				if bg then bg:Destroy() end
+			end
+		end
+	end)
+	createToggle(MainTab, "Bunnyhop", function(s) bhopEnabled = s end)
+	createToggle(MainTab, "Platform Gun", function(s) platformGunEnabled = s end)
+	createToggle(MainTab, "Tool Reach", function(s) toolReachEnabled = s end)
+	createToggle(MainTab, "Auto Clicker", function(s) autoClickerEnabled = s end)
+	createToggle(MainTab, "Infinite Zoom", function(s) 
+		infZoomEnabled = s 
+		LocalPlayer.CameraMaxZoomDistance = s and 999999 or 400
+	end)
 
-RunService.RenderStepped:Connect(function()
-	for _, p in ipairs(Players:GetPlayers()) do
-		if p ~= LocalPlayer and p.Character then
-			local char = p.Character
-			local hl = char:FindFirstChild("MM2EspHL")
-			if mm2espEnabled then
-				local role = "Innocent"
-				local function check(container)
-					if not container then return end
-					for _, item in ipairs(container:GetChildren()) do
-						if item:IsA("Tool") then
-							local n = item.Name:lower()
-							if n:find("knife") or n:find("blade") then role = "Murderer"
-							elseif n:find("gun") or n:find("revolver") then role = "Sheriff" end
+	-- Visuals Tab
+	createToggle(VisualsTab, "ESP Box", function(s) espEnabled = s end)
+	createToggle(VisualsTab, "Chams", function(s) 
+		chamsEnabled = s 
+		if not s then
+			for _, p in ipairs(Players:GetPlayers()) do
+				if p.Character and p.Character:FindFirstChild("CustomChamsHL") then
+					p.Character.CustomChamsHL:Destroy()
+				end
+			end
+		end
+	end)
+	createToggle(VisualsTab, "NameTags", function(s) 
+		nametagsEnabled = s 
+		if not s then
+			for _, p in ipairs(Players:GetPlayers()) do
+				if p.Character and p.Character:FindFirstChild("Head") and p.Character.Head:FindFirstChild("CustomNameTagGui") then
+					p.Character.Head.CustomNameTagGui:Destroy()
+				end
+			end
+		end
+	end)
+	createToggle(VisualsTab, "Fullbright", function(s) fullbrightEnabled = s end)
+	createToggle(VisualsTab, "FOV Changer", function(s) fovEnabled = s end)
+	createToggle(VisualsTab, "Freecam", function(s) freecamEnabled = s end)
+	createToggle(VisualsTab, "X-Ray", function(s)
+		xrayEnabled = s
+		for _, part in ipairs(workspace:GetDescendants()) do
+			if part:IsA("BasePart") and not part:IsDescendantOf(LocalPlayer.Character) then
+				part.LocalTransparencyModifier = s and 0.5 or 0
+			end
+		end
+	end)
+
+	-- Troll Tab
+	createToggle(TrollTab, "Invisible", function(s)
+		invisEnabled = s
+		pcall(function()
+			for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
+				if part:IsA("BasePart") or part:IsA("Decal") then
+					part.Transparency = s and 1 or (part.Name == "HumanoidRootPart" and 1 or 0)
+				end
+			end
+		end)
+	end)
+	createToggle(TrollTab, "Fling", function(s)
+		flingEnabled = s
+		if s then
+			task.spawn(function()
+				while flingEnabled do
+					RunService.Heartbeat:Wait()
+					pcall(function()
+						local c = LocalPlayer.Character
+						local hrp = c and c:FindFirstChild("HumanoidRootPart")
+						if hrp then
+							local vel = hrp.Velocity
+							hrp.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
+							RunService.RenderStepped:Wait()
+							hrp.Velocity = vel
+						end
+					end)
+				end
+			end)
+		end
+	end)
+	createToggle(TrollTab, "SpinBot", function(s) spinbotEnabled = s end)
+	createToggle(TrollTab, "Anti-Fling", function(s) antiflingEnabled = s end)
+	createToggle(TrollTab, "Sit Anywhere", function(s)
+		pcall(function()
+			local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+			if hum then hum:ChangeState(s and Enum.HumanoidStateType.Seated or Enum.HumanoidStateType.Running) end
+		end)
+	end)
+	createToggle(TrollTab, "Follow Target", function(s) followplayerEnabled = s end)
+	createToggle(TrollTab, "Attach Target", function(s) attachtotargetEnabled = s end)
+
+	-- MM2 Tab
+	createToggle(MM2Tab, "MM2 Roles ESP", function(s) 
+		mm2espEnabled = s 
+		if not s then
+			for _, p in ipairs(Players:GetPlayers()) do
+				if p.Character and p.Character:FindFirstChild("MM2EspHL") then
+					p.Character.MM2EspHL:Destroy()
+				end
+			end
+		end
+	end)
+	createToggle(MM2Tab, "Auto Farm Coins", function(s) mm2autocoin = s end)
+	createClickButton(MM2Tab, "TP to Dropped Gun", function()
+		for _, item in ipairs(workspace:GetDescendants()) do
+			if item:IsA("Tool") and item.Name == "GunDrop" then
+				local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+				if hrp and item:IsA("BasePart") then hrp.CFrame = item.CFrame end
+			end
+		end
+	end)
+
+	-- Main Loops
+	RunService.RenderStepped:Connect(function()
+		pcall(function()
+			if aimEnabled then
+				local closestPlayer, closestDist = nil, math.huge
+				for _, p in ipairs(Players:GetPlayers()) do
+					if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+						local hum = p.Character:FindFirstChildOfClass("Humanoid")
+						if hum and hum.Health > 0 then
+							local screenPoint, onScreen = Camera:WorldToScreenPoint(p.Character.Head.Position)
+							if onScreen then
+								local dist = (Vector2.new(screenPoint.X, screenPoint.Y) - Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)).Magnitude
+								if dist < closestDist then closestDist, closestPlayer = dist, p end
+							end
 						end
 					end
 				end
-				check(char)
-				if p:FindFirstChild("Backpack") then check(p.Backpack) end
-
-				local col = Color3.fromRGB(0, 255, 0)
-				if role == "Murderer" then col = Color3.fromRGB(255, 0, 0)
-				elseif role == "Sheriff" then col = Color3.fromRGB(0, 100, 255) end
-
-				if not hl then
-					hl = Instance.new("Highlight")
-					hl.Name = "MM2EspHL"
-					hl.Adornee = char
-					hl.AlwaysOnTop = true
-					hl.Parent = char
-				end
-				hl.FillColor = col
-				hl.OutlineColor = col
+				if closestPlayer then Camera.CFrame = CFrame.new(Camera.CFrame.Position, closestPlayer.Character.Head.Position) end
 			end
-		end
-	end
-end)
 
-RunService.Heartbeat:Connect(function()
-	if mm2autocoin then
+			if fovEnabled then Camera.FieldOfView = 100 else Camera.FieldOfView = 70 end
+
+			if spinbotEnabled then
+				local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+				if hrp then hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(40), 0) end
+			end
+		end)
+	end)
+
+	RunService.Heartbeat:Connect(function()
 		pcall(function()
-			for _, v in ipairs(workspace:GetDescendants()) do
-				if v.Name == "CoinContainer" or v.Name == "Coin" then
-					local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-					if hrp and v:IsA("BasePart") then
-						hrp.CFrame = v.CFrame
-						break
+			if antiflingEnabled then
+				for _, p in ipairs(Players:GetPlayers()) do
+					if p ~= LocalPlayer and p.Character then
+						for _, part in ipairs(p.Character:GetDescendants()) do
+							if part:IsA("BasePart") then
+								part.CanCollide = false
+							end
+						end
 					end
 				end
 			end
+
+			if flyEnabled then
+				local char = LocalPlayer.Character
+				local hrp = char and char:FindFirstChild("HumanoidRootPart")
+				if hrp then
+					local bv = hrp:FindFirstChild("FlyVelocity") or Instance.new("BodyVelocity")
+					bv.Name = "FlyVelocity"
+					bv.Parent = hrp
+					bv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+
+					local bg = hrp:FindFirstChild("FlyGyro") or Instance.new("BodyGyro")
+					bg.Name = "FlyGyro"
+					bg.Parent = hrp
+					bg.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+					bg.CFrame = Camera.CFrame
+
+					if UserInputService:IsKeyDown(Enum.KeyCode.Two) then
+						bv.Velocity = Camera.CFrame.LookVector * 70
+					else
+						bv.Velocity = Vector3.new(0, 0, 0)
+					end
+				end
+			end
+
+			if hitboxesEnabled then
+				for _, p in ipairs(Players:GetPlayers()) do
+					if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+						local hrp = p.Character.HumanoidRootPart
+						hrp.Size = Vector3.new(12, 12, 12)
+						hrp.Transparency = 0.6
+						hrp.Color = Color3.fromRGB(255, 0, 0)
+						hrp.Material = Enum.Material.Forcefield
+						hrp.CanCollide = false
+					end
+				end
+			end
+
+			if bhopEnabled then
+				local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+				if hum and hum.FloorMaterial ~= Enum.Material.Air then
+					hum:ChangeState(Enum.HumanoidStateType.Jumping)
+					hum.WalkSpeed = 32
+				end
+			end
 		end)
-	end
-end)
+	end)
+end
 
-RunService.RenderStepped:Connect(function()
-	if fullbrightEnabled then
-		Lighting.Brightness = 2
-		Lighting.ClockTime = 14
-		Lighting.GlobalShadows = false
-	else
-		Lighting.Brightness = 1
-		Lighting.GlobalShadows = true
-	end
-
-	if freecamEnabled then
-		pcall(function()
-			Camera.CameraType = Enum.CameraType.Scriptable
-			local speed = 1
-			if UserInputService:IsKeyDown(Enum.KeyCode.W) then Camera.CFrame = Camera.CFrame + (Camera.CFrame.LookVector * speed) end
-			if UserInputService:IsKeyDown(Enum.KeyCode.S) then Camera.CFrame = Camera.CFrame - (Camera.CFrame.LookVector * speed) end
-			if Use
+pcall(SafeInit)
