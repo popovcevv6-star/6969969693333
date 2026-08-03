@@ -13,7 +13,7 @@ pcall(function()
 end)
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "p1"
+ScreenGui.Name = "NewCustomMenu"
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ResetOnSpawn = false
 
@@ -51,7 +51,7 @@ local Title = Instance.new("TextLabel")
 Title.Parent = MainFrame
 Title.BackgroundTransparency = 1
 Title.Size = UDim2.new(1, 0, 0, 40)
-Title.Text = "WERMAN P1"
+Title.Text = "CUSTOM MENU"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextSize = 16
 Title.Font = Enum.Font.SourceSansBold
@@ -61,7 +61,8 @@ Container.Parent = MainFrame
 Container.BackgroundTransparency = 1
 Container.Position = UDim2.new(0, 0, 0, 45)
 Container.Size = UDim2.new(1, 0, 1, -45)
-Container.CanvasSize = UDim2.new(0, 0, 0, 580)
+Container.CanvasSize = UDim2.new(0, 0, 0, 0)
+Container.AutomaticCanvasSize = Enum.AutomaticSize.Y
 Container.ScrollBarThickness = 3
 
 local UIList = Instance.new("UIListLayout")
@@ -69,6 +70,11 @@ UIList.Parent = Container
 UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
 UIList.SortOrder = Enum.SortOrder.LayoutOrder
 UIList.Padding = UDim.new(0, 10)
+
+local UIPadding = Instance.new("UIPadding")
+UIPadding.Parent = Container
+UIPadding.PaddingBottom = UDim.new(0, 15)
+UIPadding.PaddingTop = UDim.new(0, 5)
 
 local function createToggle(name, callback)
 	local btn = Instance.new("TextButton")
