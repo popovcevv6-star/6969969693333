@@ -283,10 +283,6 @@ end)
 createToggle(TrollTab, "SpinBot", function(s) spinbotEnabled = s end)
 createToggle(TrollTab, "Anti-Fling", function(s)
 	antiflingEnabled = s
-	pcall(function()
-		local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-		if hrp then hrp.CustomPhysicalProperties = s and PhysicalProperties.new(math.huge, 0, 0, math.huge, math.huge) or nil end
-	end)
 end)
 createToggle(TrollTab, "Sit Anywhere", function(s)
 	pcall(function()
@@ -321,13 +317,15 @@ end)
 -- ESP Box Drawing
 local espBoxes = {}
 local function createEspBox(player)
-	local box = Drawing.new("Square")
-	box.Color = Color3.fromRGB(255, 0, 0)
-	box.Thickness = 1.5
-	box.Filled = false
-	box.Transparency = 1
-	box.Visible = false
-	espBoxes[player] = box
+	pcall(function()
+		local box = Drawing.new("Square")
+		box.Color = Color3.fromRGB(255, 0, 0)
+		box.Thickness = 1.5
+		box.Filled = false
+		box.Transparency = 1
+		box.Visible = false
+		espBoxes[player] = box
+	end)
 end
 
 for _, p in ipairs(Players:GetPlayers()) do
@@ -336,12 +334,12 @@ end
 Players.PlayerAdded:Connect(function(p) createEspBox(p) end)
 Players.PlayerRemoving:Connect(function(p)
 	if espBoxes[p] then
-		espBoxes[p]:Remove()
+		pcall(function() espBoxes[p]:Remove() end)
 		espBoxes[p] = nil
 	end
 end)
 
--- Platform Gun клик
+-- Platform Gun & AutoClicker
 local mouse = LocalPlayer:GetMouse()
 mouse.Button1Down:Connect(function()
 	if platformGunEnabled then
@@ -354,14 +352,18 @@ mouse.Button1Down:Connect(function()
 			p.Parent = workspace
 		end)
 	end
-	
-	if autoClickerEnabled then
-		task.spawn(function()
-			while autoClickerEnabled do
-				mouse1click()
-				task.wait(0.05)
-			end
-		end)
+end)
+
+task.spawn(function()
+	while true do
+		task.wait(0.05)
+		if autoClickerEnabled then
+			pcall(function()
+				if mouse1click then
+					mouse1click()
+				end
+			end)
+		end
 	end
 end)
 
@@ -408,12 +410,26 @@ RunService.RenderStepped:Connect(function()
 				box.Visible = false
 			end
 		else
-			box.Visible = false
+			if box then box.Visible = false end
 		end
 	end
 end)
 
 RunService.Heartbeat:Connect(function()
+	if antiflingEnabled then
+		pcall(function()
+			for _, p in ipairs(Players:GetPlayers()) do
+				if p ~= LocalPlayer and p.Character then
+					for _, part in ipairs(p.Character:GetDescendants()) do
+						if part:IsA("BasePart") then
+							part.CanCollide = false
+						end
+					end
+				end
+			end
+		end)
+	end
+
 	if flyEnabled then
 		pcall(function()
 			local char = LocalPlayer.Character
@@ -616,5 +632,4 @@ RunService.RenderStepped:Connect(function()
 			local speed = 1
 			if UserInputService:IsKeyDown(Enum.KeyCode.W) then Camera.CFrame = Camera.CFrame + (Camera.CFrame.LookVector * speed) end
 			if UserInputService:IsKeyDown(Enum.KeyCode.S) then Camera.CFrame = Camera.CFrame - (Camera.CFrame.LookVector * speed) end
-			if UserInputService:IsKeyDown(Enum.KeyCode.A) then Camera.CFrame = Camera.CFrame + (-Camera.CFrame.RightVector * speed) end
-			if UserInputService:IsKeyDown(Enum.KeyCode.D) then Camera.CFrame = Camera.CFrame + (Ca
+			if Use
